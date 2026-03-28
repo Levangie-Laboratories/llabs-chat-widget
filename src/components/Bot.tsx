@@ -643,7 +643,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
         const restored: MessageType[] = histResult.data.messages.map((m) => ({
           message: m.content,
-          type: m.role === 'user' ? 'userMessage' as messageType : 'apiMessage' as messageType,
+          type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
           dateTime: new Date(m.timestamp * 1000).toISOString(),
         }));
         // Prepend welcome message
@@ -1491,6 +1491,16 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
   const clearChat = () => {
     try {
+      // ── LLabs mode: tear down session so next message creates a fresh one ──
+      if (isLLabsMode() && props.agentType) {
+        if (llabsEventSource) {
+          llabsEventSource.close();
+          llabsEventSource = null;
+        }
+        clearStoredSession(props.agentType);
+        setLLabsSessionId(null);
+      }
+
       removeLocalStorageChatHistory(props.chatflowid);
       setChatId(
         (props.chatflowConfig?.vars as any)?.customerId ? `${(props.chatflowConfig?.vars as any).customerId.toString()}+${uuidv4()}` : uuidv4(),
@@ -1624,7 +1634,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
           const restored: MessageType[] = histResult.data.messages.map((m) => ({
             message: m.content,
-            type: m.role === 'user' ? 'userMessage' as messageType : 'apiMessage' as messageType,
+            type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
             dateTime: new Date(m.timestamp * 1000).toISOString(),
           }));
           setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
