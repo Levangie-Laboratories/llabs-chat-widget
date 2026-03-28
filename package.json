@@ -1,7 +1,7 @@
 {
-  "name": "flowise-embed",
-  "version": "3.1.1",
-  "description": "Javascript library to display flowise chatbot on your website",
+  "name": "llabs-chat-widget",
+  "version": "0.1.0",
+  "description": "Embeddable chat widget for LLabs AI assistants",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

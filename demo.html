@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLabs Chat Widget Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 0 20px;
+            color: #333;
+            background: #f9fafb;
+        }
+        h1 { color: #111; }
+        p { color: #666; line-height: 1.6; }
+        code {
+            background: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>LLabs Chat Widget Demo</h1>
+    <p>This page simulates a customer's website with the chat widget embedded.
+       Look at the bottom-right corner for the chat bubble.</p>
+    <p>The widget is loaded from the local build via <code>dist/web.js</code>.</p>
+    <p>Set <code>apiKey</code> below (never commit it) and point <code>apiHost</code>
+       at a running LLabs backend to test end-to-end.</p>
+
+    <h2>Sample Page Content</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+       incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+       exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+       fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+       culpa qui officia deserunt mollit anim id est laborum.</p>
+
+    <script type="module">
+        import Chatbot from './dist/web.js';
+
+        Chatbot.init({
+            apiHost: 'http://localhost:8001',
+            agentType: 'coding',
+            apiKey: '',  // FILL IN LOCALLY, never commit
+            theme: {
+                chatWindow: {
+                    showTitle: true,
+                    title: 'LLabs Assistant',
+                    welcomeMessage: 'Hi! How can I help you today?',
+                    backgroundColor: '#ffffff',
+                    fontSize: 16,
+                    botMessage: {
+                        backgroundColor: '#f0f0f0',
+                        textColor: '#303235',
+                    },
+                    userMessage: {
+                        backgroundColor: '#6366f1',
+                        textColor: '#ffffff',
+                    },
+                    textInput: {
+                        placeholder: 'Type your message...',
+                        sendButtonColor: '#6366f1',
+                    },
+                    footer: {
+                        showFooter: false,
+                    },
+                },
+                button: {
+                    backgroundColor: '#6366f1',
+                    size: 'large',
+                    bottom: 24,
+                    right: 24,
+                },
+            },
+        });
+    </script>
+</body>
+</html>

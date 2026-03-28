@@ -12,6 +12,16 @@ import {
   abortTTSQuery,
   abortMessageQuery,
 } from '@/queries/sendMessageQuery';
+import {
+  initSession,
+  sendLLabsMessage,
+  getChatHistory,
+  getStreamUrl,
+  getStoredSession,
+  storeSession,
+  touchSession,
+  clearStoredSession,
+} from '@/queries/llabsChatQuery';
 import { TextInput } from './inputs/textInput';
 import { GuestBubble } from './bubbles/GuestBubble';
 import { BotBubble } from './bubbles/BotBubble';
@@ -150,8 +160,10 @@ type observerConfigType = (accessor: string | boolean | object | MessageType[]) 
 export type observersConfigType = Record<'observeUserInput' | 'observeLoading' | 'observeMessages', observerConfigType>;
 
 export type BotProps = {
-  chatflowid: string;
+  chatflowid?: string;
   apiHost?: string;
+  agentType?: string;
+  apiKey?: string;
   onRequest?: (request: RequestInit) => Promise<void>;
   chatflowConfig?: Record<string, unknown>;
   backgroundColor?: string;
@@ -552,6 +564,118 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   // TTS auto-scroll prevention refs
   let isTTSActionRef = false;
   let ttsTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+
+  // ── LLabs mode ──────────────────────────────────────────────────────
+  const isLLabsMode = () => !!props.agentType && !!props.apiKey;
+  const [llabsSessionId, setLLabsSessionId] = createSignal<string | null>(null);
+  let llabsEventSource: EventSource | null = null;
+
+  /** Connect to the persistent LLabs SSE stream */
+  const connectLLabsStream = (sessionId: string) => {
+    if (llabsEventSource) {
+      llabsEventSource.close();
+    }
+    const url = getStreamUrl(props.apiHost ?? '', sessionId, props.apiKey ?? '');
+    const es = new EventSource(url);
+
+    es.addEventListener('message', (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.role === 'assistant' && data.content) {
+          // If loading (waiting for first token), add a new bot message
+          if (loading()) {
+            setMessages((prev) => [...prev, { message: data.content, type: 'apiMessage', dateTime: new Date().toISOString() }]);
+            setLoading(false);
+          } else {
+            // Append to last bot message
+            updateLastMessage(data.content);
+          }
+          if (props.agentType) touchSession(props.agentType);
+          scrollToBottom();
+        }
+      } catch {
+        // ignore parse errors
+      }
+    });
+
+    es.addEventListener('status', (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.status === 'thinking') {
+          setLoading(true);
+          scrollToBottom();
+        } else if (data.status === 'idle') {
+          setLoading(false);
+        }
+      } catch {
+        // ignore
+      }
+    });
+
+    es.addEventListener('heartbeat', () => {
+      // keep-alive, nothing to do
+    });
+
+    es.onerror = () => {
+      // EventSource will auto-reconnect; just log
+      console.warn('[LLabs] SSE connection error — will auto-reconnect');
+    };
+
+    llabsEventSource = es;
+  };
+
+  /** Initialize or resume an LLabs session */
+  const ensureLLabsSession = async (): Promise<string | null> => {
+    // Already have an active session this render
+    if (llabsSessionId()) return llabsSessionId();
+
+    const agentType = props.agentType ?? '';
+    const apiKey = props.apiKey ?? '';
+    const apiHost = props.apiHost ?? '';
+
+    // Check localStorage for existing session
+    const stored = getStoredSession(agentType);
+    if (stored) {
+      setLLabsSessionId(stored.sessionId);
+      connectLLabsStream(stored.sessionId);
+      // Restore chat history
+      const histResult = await getChatHistory(apiHost, stored.sessionId, apiKey);
+      if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
+        const restored: MessageType[] = histResult.data.messages.map((m) => ({
+          message: m.content,
+          type: m.role === 'user' ? 'userMessage' as messageType : 'apiMessage' as messageType,
+          dateTime: new Date(m.timestamp * 1000).toISOString(),
+        }));
+        // Prepend welcome message
+        setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+      }
+      return stored.sessionId;
+    }
+
+    // Init new session
+    const result = await initSession(apiHost, agentType, apiKey);
+    if (result.data) {
+      const sid = result.data.session_id;
+      setLLabsSessionId(sid);
+      storeSession(agentType, sid);
+      connectLLabsStream(sid);
+      return sid;
+    }
+    if (result.error) {
+      console.error('[LLabs] Failed to init session:', result.error);
+      handleError('Failed to connect to assistant. Please try again.');
+    }
+    return null;
+  };
+
+  // Cleanup SSE on unmount
+  onCleanup(() => {
+    if (llabsEventSource) {
+      llabsEventSource.close();
+      llabsEventSource = null;
+    }
+  });
+  // ── End LLabs mode ──────────────────────────────────────────────────
 
   createMemo(() => {
     const customerId = (props.chatflowConfig?.vars as any)?.customerId;
@@ -1186,6 +1310,26 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       return messages;
     });
 
+    // ── LLabs mode: send via LLabs API ──────────────────────────────
+    if (isLLabsMode()) {
+      try {
+        const sessionId = await ensureLLabsSession();
+        if (!sessionId) {
+          handleError('Could not establish a session.');
+          return;
+        }
+        const msgResult = await sendLLabsMessage(props.apiHost ?? '', sessionId, value as string, props.apiKey ?? '');
+        if (msgResult.error) {
+          handleError(`Error sending message: ${msgResult.error}`);
+        }
+        // Response will arrive via the SSE stream — loading stays true until then
+      } catch (err: any) {
+        handleError(err?.message || 'Failed to send message.');
+      }
+      return;
+    }
+    // ── End LLabs mode ──────────────────────────────────────────────
+
     const body: IncomingInput = {
       question: value,
       chatId: chatId(),
@@ -1468,6 +1612,33 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       const filteredMessages = loadedMessages.filter((message) => message.type !== 'leadCaptureMessage');
       setMessages([...filteredMessages]);
     }
+
+    // ── LLabs mode: skip Flowise config fetches, try to resume session ──
+    if (isLLabsMode()) {
+      const stored = getStoredSession(props.agentType!);
+      if (stored) {
+        setLLabsSessionId(stored.sessionId);
+        connectLLabsStream(stored.sessionId);
+        // Restore history from backend
+        const histResult = await getChatHistory(props.apiHost ?? '', stored.sessionId, props.apiKey ?? '');
+        if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
+          const restored: MessageType[] = histResult.data.messages.map((m) => ({
+            message: m.content,
+            type: m.role === 'user' ? 'userMessage' as messageType : 'apiMessage' as messageType,
+            dateTime: new Date(m.timestamp * 1000).toISOString(),
+          }));
+          setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+        }
+      }
+      // eslint-disable-next-line solid/reactivity
+      return () => {
+        setUserInput('');
+        setUploadedFiles([]);
+        setLoading(false);
+        setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }]);
+      };
+    }
+    // ── End LLabs mode guard ──────────────────────────────────────────
 
     // Determine if particular chatflow is available for streaming
     const { data } = await isStreamAvailableQuery({
@@ -1890,7 +2061,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     const messagesArray = messages();
     const disabled =
       loading() ||
-      !props.chatflowid ||
+      (!props.chatflowid && !isLLabsMode()) ||
       (leadsConfig()?.status && !isLeadSaved()) ||
       (messagesArray[messagesArray.length - 1].action && Object.keys(messagesArray[messagesArray.length - 1].action as any).length > 0);
     if (disabled) {

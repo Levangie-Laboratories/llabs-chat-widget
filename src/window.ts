@@ -3,8 +3,10 @@ import { BubbleTheme } from './features/bubble/types';
 
 /* eslint-disable solid/reactivity */
 type BotProps = {
-  chatflowid: string;
+  chatflowid?: string;
   apiHost?: string;
+  agentType?: string;
+  apiKey?: string;
   onRequest?: (request: RequestInit) => Promise<void>;
   chatflowConfig?: Record<string, unknown>;
   observersConfig?: observersConfigType;
@@ -15,9 +17,9 @@ let elementUsed: Element | undefined;
 
 export const initFull = (props: BotProps & { id?: string }) => {
   destroy();
-  let fullElement = props.id ? document.getElementById(props.id) : document.querySelector('flowise-fullchatbot');
+  let fullElement = props.id ? document.getElementById(props.id) : document.querySelector('llabs-chat-full');
   if (!fullElement) {
-    fullElement = document.createElement('flowise-fullchatbot');
+    fullElement = document.createElement('llabs-chat-full');
     Object.assign(fullElement, props);
     document.body.appendChild(fullElement);
   } else {
@@ -28,7 +30,7 @@ export const initFull = (props: BotProps & { id?: string }) => {
 
 export const init = (props: BotProps) => {
   destroy();
-  const element = document.createElement('flowise-chatbot');
+  const element = document.createElement('llabs-chat-widget');
   Object.assign(element, props);
   document.body.appendChild(element);
   elementUsed = element;

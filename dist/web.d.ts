@@ -1,7 +1,9 @@
 declare const chatbot: {
     initFull: (props: {
-        chatflowid: string;
+        chatflowid?: string | undefined;
         apiHost?: string | undefined;
+        agentType?: string | undefined;
+        apiKey?: string | undefined;
         onRequest?: ((request: RequestInit) => Promise<void>) | undefined;
         chatflowConfig?: Record<string, unknown> | undefined;
         observersConfig?: import("./components/Bot").observersConfigType | undefined;
@@ -10,8 +12,10 @@ declare const chatbot: {
         id?: string | undefined;
     }) => void;
     init: (props: {
-        chatflowid: string;
+        chatflowid?: string | undefined;
         apiHost?: string | undefined;
+        agentType?: string | undefined;
+        apiKey?: string | undefined;
         onRequest?: ((request: RequestInit) => Promise<void>) | undefined;
         chatflowConfig?: Record<string, unknown> | undefined;
         observersConfig?: import("./components/Bot").observersConfigType | undefined;
