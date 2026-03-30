@@ -683,7 +683,11 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         clearStoredSession(agentType);
         setMessages((prev) => [
           ...prev,
-          { message: 'Your previous conversation has ended. Send a message to start a new one.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+          {
+            message: 'Your previous conversation has ended. Send a message to start a new one.',
+            type: 'apiMessage' as messageType,
+            dateTime: new Date().toISOString(),
+          },
         ]);
         scrollToBottom();
         return null;
@@ -1688,7 +1692,11 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           clearStoredSession(props.agentType!);
           setMessages([
             { message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' },
-            { message: 'Your previous conversation has ended. Send a message to start a new one.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+            {
+              message: 'Your previous conversation has ended. Send a message to start a new one.',
+              type: 'apiMessage' as messageType,
+              dateTime: new Date().toISOString(),
+            },
           ]);
         }
       }

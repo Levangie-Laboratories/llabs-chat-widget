@@ -18,19 +18,20 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
 
   Chatbot.init({
     apiHost: 'https://dev.levangielaboratories.com', // LLabs backend URL
-    agentType: 'coding',                              // Which agent to chat with
-    apiKey: 'ub_xxxxx',                               // Your LLabs API key
+    agentType: 'coding', // Which agent to chat with
+    apiKey: 'ub_xxxxx', // Your LLabs API key
     theme: {
       chatWindow: {
         showTitle: true,
-        title: 'Chat with us',                        // Header title
-        titleAvatarSrc: 'https://...',                // Logo in header (optional)
-        titleBackgroundColor: '#6366f1',              // Header bar color
-        titleTextColor: '#ffffff',                    // Header text color
+        title: 'Chat with us', // Header title
+        titleAvatarSrc: 'https://...', // Logo in header (optional)
+        titleBackgroundColor: '#6366f1', // Header bar color
+        titleTextColor: '#ffffff', // Header text color
         welcomeMessage: 'Hi! How can I help you today?',
         backgroundColor: '#ffffff',
-        clearChatOnReload: false,                     // Keep chat on page refresh
-        starterPrompts: [                             // Suggested questions (optional)
+        clearChatOnReload: false, // Keep chat on page refresh
+        starterPrompts: [
+          // Suggested questions (optional)
           'What do you do?',
           'How can you help me?',
         ],
@@ -38,7 +39,7 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
           backgroundColor: '#f0f0f0',
           textColor: '#303235',
           showAvatar: true,
-          avatarSrc: 'https://...',                   // Bot avatar image (optional)
+          avatarSrc: 'https://...', // Bot avatar image (optional)
         },
         userMessage: {
           backgroundColor: '#6366f1',
@@ -53,20 +54,20 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
         },
       },
       tooltip: {
-        showTooltip: true,                            // Hover tooltip on bubble
+        showTooltip: true, // Hover tooltip on bubble
         tooltipMessage: 'Need help? Chat with us!',
         tooltipBackgroundColor: 'black',
         tooltipTextColor: 'white',
       },
       button: {
         backgroundColor: '#6366f1',
-        size: 'large',                                // 'small' | 'medium' | 'large' | number
+        size: 'large', // 'small' | 'medium' | 'large' | number
         bottom: 24,
         right: 24,
-        customIconSrc: 'https://...',                 // Custom bubble icon (optional)
+        customIconSrc: 'https://...', // Custom bubble icon (optional)
         autoWindowOpen: {
-          autoOpen: false,                            // Auto-open chat on page load
-          openDelay: 2,                               // Delay in seconds
+          autoOpen: false, // Auto-open chat on page load
+          openDelay: 2, // Delay in seconds
           autoOpenOnMobile: false,
         },
       },
@@ -187,24 +188,24 @@ Chatbot.init({
 
 These options are available but not included in the default snippet:
 
-| Option | Location | Description |
-|--------|----------|-------------|
-| `height` / `width` | `chatWindow` | Resize the chat panel (default: 700x400) |
-| `backgroundImage` | `chatWindow` | Background image URL for the chat panel |
-| `renderHTML` | `chatWindow` | Allow HTML rendering in messages (default: true) |
-| `maxChars` | `textInput` | Character limit on input (shows warning) |
-| `autoFocus` | `textInput` | Auto-focus the input when chat opens |
-| `sendMessageSound` | `textInput` | Play sound on message send |
-| `receiveMessageSound` | `textInput` | Play sound on message receive |
-| `showAvatar` | `userMessage` | Show avatar next to user messages |
-| `avatarSrc` | `userMessage` | Custom avatar image for user messages |
-| `dragAndDrop` | `button` | Allow visitor to drag the chat bubble |
-| `iconColor` | `button` | Color of the default chat icon |
-| `starterPromptFontSize` | `chatWindow` | Font size for starter prompt buttons |
-| `dateTimeToggle` | `chatWindow` | Show date/time on messages (`{date: true, time: true}`) |
-| `fontSize` | `chatWindow` | Base font size for chat text |
-| `customCSS` | `theme` | Inject custom CSS (use `!important` to override defaults) |
-| `disclaimer` | `theme` | Show a disclaimer popup before chat starts |
+| Option                  | Location      | Description                                               |
+| ----------------------- | ------------- | --------------------------------------------------------- |
+| `height` / `width`      | `chatWindow`  | Resize the chat panel (default: 700x400)                  |
+| `backgroundImage`       | `chatWindow`  | Background image URL for the chat panel                   |
+| `renderHTML`            | `chatWindow`  | Allow HTML rendering in messages (default: true)          |
+| `maxChars`              | `textInput`   | Character limit on input (shows warning)                  |
+| `autoFocus`             | `textInput`   | Auto-focus the input when chat opens                      |
+| `sendMessageSound`      | `textInput`   | Play sound on message send                                |
+| `receiveMessageSound`   | `textInput`   | Play sound on message receive                             |
+| `showAvatar`            | `userMessage` | Show avatar next to user messages                         |
+| `avatarSrc`             | `userMessage` | Custom avatar image for user messages                     |
+| `dragAndDrop`           | `button`      | Allow visitor to drag the chat bubble                     |
+| `iconColor`             | `button`      | Color of the default chat icon                            |
+| `starterPromptFontSize` | `chatWindow`  | Font size for starter prompt buttons                      |
+| `dateTimeToggle`        | `chatWindow`  | Show date/time on messages (`{date: true, time: true}`)   |
+| `fontSize`              | `chatWindow`  | Base font size for chat text                              |
+| `customCSS`             | `theme`       | Inject custom CSS (use `!important` to override defaults) |
+| `disclaimer`            | `theme`       | Show a disclaimer popup before chat starts                |
 
 See the full [Theme Options](#theme-options) section for complete configuration reference.
 
