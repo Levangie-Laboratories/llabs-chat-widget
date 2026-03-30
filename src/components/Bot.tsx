@@ -616,10 +616,30 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       // keep-alive, nothing to do
     });
 
+    let sseErrorCount = 0;
+    const SSE_MAX_ERRORS = 5;
+
     es.onerror = () => {
-      // EventSource will auto-reconnect; just log
-      console.warn('[LLabs] SSE connection error — will auto-reconnect');
+      sseErrorCount++;
+      console.warn(`[LLabs] SSE connection error (${sseErrorCount}/${SSE_MAX_ERRORS})`);
+      if (sseErrorCount >= SSE_MAX_ERRORS) {
+        es.close();
+        llabsEventSource = null;
+        setLLabsSessionId(null);
+        if (props.agentType) clearStoredSession(props.agentType);
+        setLoading(false);
+        setMessages((prev) => [
+          ...prev,
+          { message: 'Connection lost. Send a message to reconnect.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+        ]);
+        scrollToBottom();
+      }
     };
+
+    // Reset error count on successful message
+    es.addEventListener('message', () => {
+      sseErrorCount = 0;
+    });
 
     llabsEventSource = es;
   };
@@ -636,20 +656,38 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     // Check localStorage for existing session
     const stored = getStoredSession(agentType);
     if (stored) {
-      setLLabsSessionId(stored.sessionId);
-      connectLLabsStream(stored.sessionId);
-      // Restore chat history
-      const histResult = await getChatHistory(apiHost, stored.sessionId, apiKey);
-      if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
-        const restored: MessageType[] = histResult.data.messages.map((m) => ({
-          message: m.content,
-          type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
-          dateTime: new Date(m.timestamp * 1000).toISOString(),
-        }));
-        // Prepend welcome message
-        setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+      try {
+        // Try to restore — may fail if agent died / server restarted
+        const histResult = await getChatHistory(apiHost, stored.sessionId, apiKey);
+        if (histResult.error) throw histResult.error;
+        setLLabsSessionId(stored.sessionId);
+        connectLLabsStream(stored.sessionId);
+        if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
+          const restored: MessageType[] = histResult.data.messages.map((m) => ({
+            message: m.content,
+            type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
+            dateTime: new Date(m.timestamp * 1000).toISOString(),
+          }));
+          // Prepend welcome message
+          setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+        }
+        return stored.sessionId;
+      } catch (err) {
+        // Session is stale — agent died or server restarted
+        console.warn('[LLabs] Failed to resume session, clearing:', err);
+        if (llabsEventSource) {
+          llabsEventSource.close();
+          llabsEventSource = null;
+        }
+        setLLabsSessionId(null);
+        clearStoredSession(agentType);
+        setMessages((prev) => [
+          ...prev,
+          { message: 'Your previous conversation has ended. Send a message to start a new one.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+        ]);
+        scrollToBottom();
+        return null;
       }
-      return stored.sessionId;
     }
 
     // Init new session
@@ -1627,17 +1665,31 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     if (isLLabsMode()) {
       const stored = getStoredSession(props.agentType!);
       if (stored) {
-        setLLabsSessionId(stored.sessionId);
-        connectLLabsStream(stored.sessionId);
-        // Restore history from backend
-        const histResult = await getChatHistory(props.apiHost ?? '', stored.sessionId, props.apiKey ?? '');
-        if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
-          const restored: MessageType[] = histResult.data.messages.map((m) => ({
-            message: m.content,
-            type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
-            dateTime: new Date(m.timestamp * 1000).toISOString(),
-          }));
-          setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+        try {
+          const histResult = await getChatHistory(props.apiHost ?? '', stored.sessionId, props.apiKey ?? '');
+          if (histResult.error) throw histResult.error;
+          setLLabsSessionId(stored.sessionId);
+          connectLLabsStream(stored.sessionId);
+          if (histResult.data && histResult.data.messages && histResult.data.messages.length > 0) {
+            const restored: MessageType[] = histResult.data.messages.map((m) => ({
+              message: m.content,
+              type: m.role === 'user' ? ('userMessage' as messageType) : ('apiMessage' as messageType),
+              dateTime: new Date(m.timestamp * 1000).toISOString(),
+            }));
+            setMessages([{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }, ...restored]);
+          }
+        } catch (err) {
+          console.warn('[LLabs] Failed to resume session on mount, clearing:', err);
+          if (llabsEventSource) {
+            llabsEventSource.close();
+            llabsEventSource = null;
+          }
+          setLLabsSessionId(null);
+          clearStoredSession(props.agentType!);
+          setMessages([
+            { message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' },
+            { message: 'Your previous conversation has ended. Send a message to start a new one.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+          ]);
         }
       }
       // eslint-disable-next-line solid/reactivity
