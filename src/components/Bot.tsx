@@ -819,7 +819,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       }
       return item;
     });
-    setLocalStorageChatflow(props.chatflowid, chatId(), { chatHistory: messages });
+    setLocalStorageChatflow(props.chatflowid!, chatId(), { chatHistory: messages });
   };
 
   // Define the audioRef
@@ -1212,7 +1212,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     setIsMessageStopping(true);
     try {
       await abortMessageQuery({
-        chatflowid: props.chatflowid,
+        chatflowid: props.chatflowid!,
         apiHost: props.apiHost,
         chatId: chatId(),
         onRequest: props.onRequest,
@@ -1245,7 +1245,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         formData.append('chatId', chatId());
 
         const response = await createAttachmentWithFormData({
-          chatflowid: props.chatflowid,
+          chatflowid: props.chatflowid!,
           apiHost: props.apiHost,
           formData: formData,
         });
@@ -1282,7 +1282,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         formData.append('chatId', chatId());
 
         const response = await upsertVectorStoreWithFormData({
-          chatflowid: props.chatflowid,
+          chatflowid: props.chatflowid!,
           apiHost: props.apiHost,
           formData: formData,
         });
@@ -1393,10 +1393,10 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     if (humanInput) body.humanInput = humanInput;
 
     if (isChatFlowAvailableToStream()) {
-      fetchResponseFromEventStream(props.chatflowid, body);
+      fetchResponseFromEventStream(props.chatflowid!, body);
     } else {
       const result = await sendMessageQuery({
-        chatflowid: props.chatflowid,
+        chatflowid: props.chatflowid!,
         apiHost: props.apiHost,
         body,
         onRequest: props.onRequest,
@@ -1543,7 +1543,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setLLabsSessionId(null);
       }
 
-      removeLocalStorageChatHistory(props.chatflowid);
+      removeLocalStorageChatHistory(props.chatflowid!);
       setChatId(
         (props.chatflowConfig?.vars as any)?.customerId ? `${(props.chatflowConfig?.vars as any).customerId.toString()}+${uuidv4()}` : uuidv4(),
       );
@@ -1554,7 +1554,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           type: 'apiMessage',
         },
       ];
-      if (leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid)?.lead) {
+      if (leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid!)?.lead) {
         messages.push({ message: '', type: 'leadCaptureMessage' });
       }
       setMessages(messages);
@@ -1620,7 +1620,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       setDisclaimerPopupOpen(false);
     }
 
-    const chatMessage = getLocalStorageChatflow(props.chatflowid);
+    const chatMessage = getLocalStorageChatflow(props.chatflowid!);
     if (chatMessage && Object.keys(chatMessage).length) {
       if (chatMessage.chatId) setChatId(chatMessage.chatId);
       const savedLead = chatMessage.lead;
@@ -1806,7 +1806,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       }
       if (chatbotConfig.leads) {
         setLeadsConfig(chatbotConfig.leads);
-        if (chatbotConfig.leads?.status && !getLocalStorageChatflow(props.chatflowid)?.lead) {
+        if (chatbotConfig.leads?.status && !getLocalStorageChatflow(props.chatflowid!)?.lead) {
           setMessages((prevMessages) => [...prevMessages, { message: '', type: 'leadCaptureMessage' }]);
         }
       }
@@ -2483,7 +2483,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       await abortTTSQuery({
         apiHost: props.apiHost,
         body: {
-          chatflowId: props.chatflowid,
+          chatflowId: props.chatflowid!,
           chatId: chatId(),
           chatMessageId: messageId,
         },
@@ -2528,7 +2528,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         await abortTTSQuery({
           apiHost: props.apiHost,
           body: {
-            chatflowId: props.chatflowid,
+            chatflowId: props.chatflowid!,
             chatId: chatId(),
             chatMessageId: messageId,
           },
@@ -2567,7 +2567,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         apiHost: props.apiHost,
         body: {
           chatId: chatId(),
-          chatflowId: props.chatflowid,
+          chatflowId: props.chatflowid!,
           chatMessageId: messageId,
           text: messageText,
         },
@@ -2801,7 +2801,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                         <GuestBubble
                           message={message}
                           apiHost={props.apiHost}
-                          chatflowid={props.chatflowid}
+                          chatflowid={props.chatflowid ?? ''}
                           chatId={chatId()}
                           backgroundColor={props.userMessage?.backgroundColor}
                           textColor={props.userMessage?.textColor}
@@ -2815,7 +2815,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                         <BotBubble
                           message={message}
                           fileAnnotations={message.fileAnnotations}
-                          chatflowid={props.chatflowid}
+                          chatflowid={props.chatflowid ?? ''}
                           chatId={chatId()}
                           apiHost={props.apiHost}
                           backgroundColor={props.botMessage?.backgroundColor}
@@ -2844,10 +2844,10 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                           dialogContainer={props.dialogContainer}
                         />
                       )}
-                      {message.type === 'leadCaptureMessage' && leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid)?.lead && (
+                      {message.type === 'leadCaptureMessage' && leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid!)?.lead && (
                         <LeadCaptureBubble
                           message={message}
-                          chatflowid={props.chatflowid}
+                          chatflowid={props.chatflowid ?? ''}
                           chatId={chatId()}
                           apiHost={props.apiHost}
                           backgroundColor={props.botMessage?.backgroundColor}
