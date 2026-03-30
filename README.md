@@ -17,18 +17,28 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
   import Chatbot from 'https://your-hosting-url/dist/web.js';
 
   Chatbot.init({
-    apiHost: 'https://dev.levangielaboratories.com',  // LLabs backend URL
-    agentType: 'coding',                               // Which agent to chat with
-    apiKey: 'ub_xxxxx',                                // Your LLabs API key
+    apiHost: 'https://dev.levangielaboratories.com', // LLabs backend URL
+    agentType: 'coding',                              // Which agent to chat with
+    apiKey: 'ub_xxxxx',                               // Your LLabs API key
     theme: {
       chatWindow: {
         showTitle: true,
-        title: 'Chat with us',
+        title: 'Chat with us',                        // Header title
+        titleAvatarSrc: 'https://...',                // Logo in header (optional)
+        titleBackgroundColor: '#6366f1',              // Header bar color
+        titleTextColor: '#ffffff',                    // Header text color
         welcomeMessage: 'Hi! How can I help you today?',
         backgroundColor: '#ffffff',
+        clearChatOnReload: false,                     // Keep chat on page refresh
+        starterPrompts: [                             // Suggested questions (optional)
+          'What do you do?',
+          'How can you help me?',
+        ],
         botMessage: {
           backgroundColor: '#f0f0f0',
           textColor: '#303235',
+          showAvatar: true,
+          avatarSrc: 'https://...',                   // Bot avatar image (optional)
         },
         userMessage: {
           backgroundColor: '#6366f1',
@@ -42,11 +52,23 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
           showFooter: false,
         },
       },
+      tooltip: {
+        showTooltip: true,                            // Hover tooltip on bubble
+        tooltipMessage: 'Need help? Chat with us!',
+        tooltipBackgroundColor: 'black',
+        tooltipTextColor: 'white',
+      },
       button: {
         backgroundColor: '#6366f1',
-        size: 'large',
+        size: 'large',                                // 'small' | 'medium' | 'large' | number
         bottom: 24,
         right: 24,
+        customIconSrc: 'https://...',                 // Custom bubble icon (optional)
+        autoWindowOpen: {
+          autoOpen: false,                            // Auto-open chat on page load
+          openDelay: 2,                               // Delay in seconds
+          autoOpenOnMobile: false,
+        },
       },
     },
   });
@@ -82,11 +104,11 @@ That's it. A chat bubble appears in the bottom-right corner of your page. Visito
 
 ### Required Props
 
-| Prop | Description |
-|------|-------------|
-| `apiHost` | Your LLabs backend URL (e.g., `https://dev.levangielaboratories.com`) |
-| `agentType` | Which agent handles conversations (e.g., `coding`, `graywhale`) |
-| `apiKey` | Your LLabs API key (`ub_xxxxx`) |
+| Prop        | Description                                                           |
+| ----------- | --------------------------------------------------------------------- |
+| `apiHost`   | Your LLabs backend URL (e.g., `https://dev.levangielaboratories.com`) |
+| `agentType` | Which agent handles conversations (e.g., `coding`, `graywhale`)       |
+| `apiKey`    | Your LLabs API key (`ub_xxxxx`)                                       |
 
 ### Theme Options
 
@@ -97,16 +119,16 @@ Chatbot.init({
   apiKey: '...',
   theme: {
     button: {
-      backgroundColor: '#3B81F6',    // Bubble button color
-      right: 20,                      // Distance from right edge (px)
-      bottom: 20,                     // Distance from bottom edge (px)
-      size: 48,                       // Button size: 'small' | 'medium' | 'large' | number
+      backgroundColor: '#3B81F6', // Bubble button color
+      right: 20, // Distance from right edge (px)
+      bottom: 20, // Distance from bottom edge (px)
+      size: 48, // Button size: 'small' | 'medium' | 'large' | number
       iconColor: 'white',
-      customIconSrc: 'https://...',   // Custom icon URL (optional)
-      dragAndDrop: true,              // Allow dragging the button
+      customIconSrc: 'https://...', // Custom icon URL (optional)
+      dragAndDrop: true, // Allow dragging the button
       autoWindowOpen: {
-        autoOpen: true,               // Auto-open chat on page load
-        openDelay: 2,                 // Delay in seconds
+        autoOpen: true, // Auto-open chat on page load
+        openDelay: 2, // Delay in seconds
         autoOpenOnMobile: false,
       },
     },
@@ -150,7 +172,7 @@ Chatbot.init({
         receiveMessageSound: true,
       },
       footer: {
-        showFooter: false,            // Hide "Powered by" footer
+        showFooter: false, // Hide "Powered by" footer
         textColor: '#303235',
         text: 'Powered by',
         company: 'LLabs',
@@ -160,6 +182,31 @@ Chatbot.init({
   },
 });
 ```
+
+### Additional Options Not Shown Above
+
+These options are available but not included in the default snippet:
+
+| Option | Location | Description |
+|--------|----------|-------------|
+| `height` / `width` | `chatWindow` | Resize the chat panel (default: 700x400) |
+| `backgroundImage` | `chatWindow` | Background image URL for the chat panel |
+| `renderHTML` | `chatWindow` | Allow HTML rendering in messages (default: true) |
+| `maxChars` | `textInput` | Character limit on input (shows warning) |
+| `autoFocus` | `textInput` | Auto-focus the input when chat opens |
+| `sendMessageSound` | `textInput` | Play sound on message send |
+| `receiveMessageSound` | `textInput` | Play sound on message receive |
+| `showAvatar` | `userMessage` | Show avatar next to user messages |
+| `avatarSrc` | `userMessage` | Custom avatar image for user messages |
+| `dragAndDrop` | `button` | Allow visitor to drag the chat bubble |
+| `iconColor` | `button` | Color of the default chat icon |
+| `starterPromptFontSize` | `chatWindow` | Font size for starter prompt buttons |
+| `dateTimeToggle` | `chatWindow` | Show date/time on messages (`{date: true, time: true}`) |
+| `fontSize` | `chatWindow` | Base font size for chat text |
+| `customCSS` | `theme` | Inject custom CSS (use `!important` to override defaults) |
+| `disclaimer` | `theme` | Show a disclaimer popup before chat starts |
+
+See the full [Theme Options](#theme-options) section for complete configuration reference.
 
 ## How It Works
 
@@ -171,12 +218,12 @@ Chatbot.init({
 
 ### Backend Endpoints Used
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/channels/web/init` | POST | Create session + spawn agent |
-| `/api/channels/web/{id}/message` | POST | Send visitor message |
-| `/api/channels/web/{id}/stream` | GET | SSE stream of agent responses |
-| `/api/channels/web/{id}/history` | GET | Load conversation history on resume |
+| Endpoint                         | Method | Purpose                             |
+| -------------------------------- | ------ | ----------------------------------- |
+| `/api/channels/web/init`         | POST   | Create session + spawn agent        |
+| `/api/channels/web/{id}/message` | POST   | Send visitor message                |
+| `/api/channels/web/{id}/stream`  | GET    | SSE stream of agent responses       |
+| `/api/channels/web/{id}/history` | GET    | Load conversation history on resume |
 
 ## Development
 
@@ -233,6 +280,7 @@ npm run build
 ```
 
 Outputs:
+
 - `dist/web.js` -- ES Module (for `import`)
 - `dist/web.umd.js` -- UMD (for `<script>` tag)
 
@@ -263,11 +311,7 @@ src/
 The widget registers as a custom element `<llabs-chat-widget>`. You can also use it declaratively:
 
 ```html
-<llabs-chat-widget
-  apiHost="https://dev.levangielaboratories.com"
-  agentType="coding"
-  apiKey="ub_xxxxx"
-></llabs-chat-widget>
+<llabs-chat-widget apiHost="https://dev.levangielaboratories.com" agentType="coding" apiKey="ub_xxxxx"></llabs-chat-widget>
 <script src="dist/web.umd.js"></script>
 ```
 
