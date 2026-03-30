@@ -8,7 +8,7 @@ Forked from [FlowiseChatEmbed](https://github.com/FlowiseAI/FlowiseChatEmbed) (M
 
 ### 1. Get your API key
 
-Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` key.
+Create a widget key via the API (`POST /api/widgets/keys`) or the LLabs settings UI (coming soon). You'll get a `wk_` key tied to a specific agent.
 
 ### 2. Add the widget to your website
 
@@ -19,7 +19,7 @@ Log into the LLabs platform and go to **Settings > API Keys**. Copy your `ub_` k
   Chatbot.init({
     apiHost: 'https://dev.levangielaboratories.com', // LLabs backend URL
     agentType: 'coding', // Which agent to chat with
-    apiKey: 'ub_xxxxx', // Your LLabs API key
+    apiKey: 'wk_xxxxx', // Widget key (public, tied to agent)
     theme: {
       chatWindow: {
         showTitle: true,
@@ -88,7 +88,7 @@ That's it. A chat bubble appears in the bottom-right corner of your page. Visito
     Chatbot.initFull({
       apiHost: 'https://dev.levangielaboratories.com',
       agentType: 'coding',
-      apiKey: 'ub_xxxxx',
+      apiKey: 'wk_xxxxx',
       theme: {
         chatWindow: {
           showTitle: true,
@@ -109,7 +109,7 @@ That's it. A chat bubble appears in the bottom-right corner of your page. Visito
 | ----------- | --------------------------------------------------------------------- |
 | `apiHost`   | Your LLabs backend URL (e.g., `https://dev.levangielaboratories.com`) |
 | `agentType` | Which agent handles conversations (e.g., `coding`, `graywhale`)       |
-| `apiKey`    | Your LLabs API key (`ub_xxxxx`)                                       |
+| `apiKey`    | Your widget key (`wk_xxxxx`) — public, safe to embed in HTML          |
 
 ### Theme Options
 
