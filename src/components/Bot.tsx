@@ -812,9 +812,12 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   };
 
   /**
-   * Add each chat message into localStorage
+   * Add each chat message into localStorage (Flowise mode only).
+   * In LLabs mode, session persistence is handled by llabsChatQuery.ts
+   * with keys scoped to the widget key fingerprint.
    */
   const addChatMessage = (allMessage: MessageType[]) => {
+    if (isLLabsMode()) return; // Skip Flowise localStorage in LLabs mode
     const messages = allMessage.map((item) => {
       if (item.fileUploads) {
         const fileUploads = item?.fileUploads.map((file) => ({
@@ -1627,52 +1630,9 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       setDisclaimerPopupOpen(false);
     }
 
-    const chatMessage = getLocalStorageChatflow(props.chatflowid!);
-    if (chatMessage && Object.keys(chatMessage).length) {
-      if (chatMessage.chatId) setChatId(chatMessage.chatId);
-      const savedLead = chatMessage.lead;
-      if (savedLead) {
-        setIsLeadSaved(!!savedLead);
-        setLeadEmail(savedLead.email);
-      }
-      const loadedMessages: MessageType[] =
-        chatMessage?.chatHistory?.length > 0
-          ? chatMessage.chatHistory?.map((message: MessageType) => {
-              const chatHistory: MessageType = {
-                messageId: message?.messageId,
-                message: message.message,
-                type: message.type,
-                rating: message.rating,
-                dateTime: message.dateTime,
-              };
-              if (message.sourceDocuments) chatHistory.sourceDocuments = message.sourceDocuments;
-              if (message.fileAnnotations) chatHistory.fileAnnotations = message.fileAnnotations;
-              if (message.fileUploads) chatHistory.fileUploads = message.fileUploads;
-              if (message.agentReasoning) chatHistory.agentReasoning = message.agentReasoning;
-              if ((message as any).reasonContent && typeof (message as any).reasonContent === 'object') {
-                chatHistory.thinking = (message as any).reasonContent.thinking;
-                chatHistory.thinkingDuration = (message as any).reasonContent.thinkingDuration;
-              }
-              if (message.thinking) chatHistory.thinking = message.thinking;
-              if (message.thinkingDuration !== undefined) chatHistory.thinkingDuration = message.thinkingDuration;
-              if (message.action) chatHistory.action = message.action;
-              if (message.artifacts) chatHistory.artifacts = message.artifacts;
-              if (message.followUpPrompts) chatHistory.followUpPrompts = message.followUpPrompts;
-              if (message.execution && message.execution.executionData)
-                chatHistory.agentFlowExecutedData =
-                  typeof message.execution.executionData === 'string' ? JSON.parse(message.execution.executionData) : message.execution.executionData;
-              if (message.agentFlowExecutedData)
-                chatHistory.agentFlowExecutedData =
-                  typeof message.agentFlowExecutedData === 'string' ? JSON.parse(message.agentFlowExecutedData) : message.agentFlowExecutedData;
-              return chatHistory;
-            })
-          : [{ message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' }];
-
-      const filteredMessages = loadedMessages.filter((message) => message.type !== 'leadCaptureMessage');
-      setMessages([...filteredMessages]);
-    }
-
-    // ── LLabs mode: skip Flowise config fetches, try to resume session ──
+    // ── LLabs mode: skip ALL Flowise localStorage and config fetches ──
+    // Must be BEFORE Flowise chatHistory loading to prevent cross-widget bleed
+    // (Flowise uses `{chatflowid}_EXTERNAL` which is `undefined_EXTERNAL` in LLabs mode)
     if (isLLabsMode()) {
       const stored = getStoredSession(props.apiKey ?? '');
       if (stored) {
