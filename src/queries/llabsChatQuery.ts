@@ -33,13 +33,19 @@ type StoredSession = { sessionId: string; lastActiveAt: number };
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-export const getStoredSession = (agentType: string): StoredSession | null => {
+/** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
+const storageKey = (apiKey: string): string => {
+  const fingerprint = apiKey.slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
+  return `llabs_chat_${fingerprint}`;
+};
+
+export const getStoredSession = (apiKey: string): StoredSession | null => {
   try {
-    const raw = localStorage.getItem(`llabs_chat_${agentType}`);
+    const raw = localStorage.getItem(storageKey(apiKey));
     if (!raw) return null;
     const parsed: StoredSession = JSON.parse(raw);
     if (Date.now() - parsed.lastActiveAt > SESSION_TTL_MS) {
-      localStorage.removeItem(`llabs_chat_${agentType}`);
+      localStorage.removeItem(storageKey(apiKey));
       return null;
     }
     return parsed;
@@ -48,25 +54,25 @@ export const getStoredSession = (agentType: string): StoredSession | null => {
   }
 };
 
-export const storeSession = (agentType: string, sessionId: string) => {
+export const storeSession = (apiKey: string, sessionId: string) => {
   const data: StoredSession = { sessionId, lastActiveAt: Date.now() };
-  localStorage.setItem(`llabs_chat_${agentType}`, JSON.stringify(data));
+  localStorage.setItem(storageKey(apiKey), JSON.stringify(data));
 };
 
-export const touchSession = (agentType: string) => {
+export const touchSession = (apiKey: string) => {
   try {
-    const raw = localStorage.getItem(`llabs_chat_${agentType}`);
+    const raw = localStorage.getItem(storageKey(apiKey));
     if (!raw) return;
     const parsed: StoredSession = JSON.parse(raw);
     parsed.lastActiveAt = Date.now();
-    localStorage.setItem(`llabs_chat_${agentType}`, JSON.stringify(parsed));
+    localStorage.setItem(storageKey(apiKey), JSON.stringify(parsed));
   } catch {
     // ignore
   }
 };
 
-export const clearStoredSession = (agentType: string) => {
-  localStorage.removeItem(`llabs_chat_${agentType}`);
+export const clearStoredSession = (apiKey: string) => {
+  localStorage.removeItem(storageKey(apiKey));
 };
 
 // ── API calls ──────────────────────────────────────────────────────────

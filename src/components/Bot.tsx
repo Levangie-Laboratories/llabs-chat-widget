@@ -590,7 +590,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
             // Append to last bot message
             updateLastMessage(data.content);
           }
-          if (props.agentType) touchSession(props.agentType);
+          if (props.agentType) touchSession(props.apiKey ?? "");
           scrollToBottom();
         }
       } catch {
@@ -626,7 +626,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         es.close();
         llabsEventSource = null;
         setLLabsSessionId(null);
-        if (props.agentType) clearStoredSession(props.agentType);
+        if (props.agentType) clearStoredSession(props.apiKey ?? "");
         setLoading(false);
         setMessages((prev) => [
           ...prev,
@@ -654,7 +654,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     const apiHost = props.apiHost ?? '';
 
     // Check localStorage for existing session
-    const stored = getStoredSession(agentType);
+    const stored = getStoredSession(props.apiKey ?? "");
     if (stored) {
       try {
         // Try to restore — may fail if agent died / server restarted
@@ -680,7 +680,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           llabsEventSource = null;
         }
         setLLabsSessionId(null);
-        clearStoredSession(agentType);
+        clearStoredSession(props.apiKey ?? "");
         setMessages((prev) => [
           ...prev,
           {
@@ -699,7 +699,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     if (result.data) {
       const sid = result.data.session_id;
       setLLabsSessionId(sid);
-      storeSession(agentType, sid);
+      storeSession(props.apiKey ?? "", sid);
       connectLLabsStream(sid);
       return sid;
     }
@@ -1539,7 +1539,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           llabsEventSource.close();
           llabsEventSource = null;
         }
-        clearStoredSession(props.agentType);
+        clearStoredSession(props.apiKey ?? "");
         setLLabsSessionId(null);
       }
 
@@ -1667,7 +1667,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
     // ── LLabs mode: skip Flowise config fetches, try to resume session ──
     if (isLLabsMode()) {
-      const stored = getStoredSession(props.agentType!);
+      const stored = getStoredSession(props.apiKey ?? "");
       if (stored) {
         try {
           const histResult = await getChatHistory(props.apiHost ?? '', stored.sessionId, props.apiKey ?? '');
@@ -1689,7 +1689,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
             llabsEventSource = null;
           }
           setLLabsSessionId(null);
-          clearStoredSession(props.agentType!);
+          clearStoredSession(props.apiKey ?? "");
           setMessages([
             { message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' },
             {

@@ -40,20 +40,23 @@ type StoredSession = {
     sessionId: string;
     lastActiveAt: number;
 };
-export declare const getStoredSession: (agentType: string) => StoredSession | null;
-export declare const storeSession: (agentType: string, sessionId: string) => void;
-export declare const touchSession: (agentType: string) => void;
-export declare const clearStoredSession: (agentType: string) => void;
+export declare const getStoredSession: (apiKey: string) => StoredSession | null;
+export declare const storeSession: (apiKey: string, sessionId: string) => void;
+export declare const touchSession: (apiKey: string) => void;
+export declare const clearStoredSession: (apiKey: string) => void;
 export declare const initSession: (apiHost: string, agentType: string, apiKey: string) => Promise<{
     data?: LLabsInitResponse | undefined;
+    /** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
     error?: Error | undefined;
 }>;
 export declare const sendLLabsMessage: (apiHost: string, sessionId: string, message: string, apiKey: string) => Promise<{
     data?: LLabsMessageResponse | undefined;
+    /** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
     error?: Error | undefined;
 }>;
 export declare const getChatHistory: (apiHost: string, sessionId: string, apiKey: string, limit?: number) => Promise<{
     data?: LLabsHistoryResponse | undefined;
+    /** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
     error?: Error | undefined;
 }>;
 /**
