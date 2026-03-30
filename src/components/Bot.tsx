@@ -21,6 +21,7 @@ import {
   storeSession,
   touchSession,
   clearStoredSession,
+  stopSession,
 } from '@/queries/llabsChatQuery';
 import { TextInput } from './inputs/textInput';
 import { GuestBubble } from './bubbles/GuestBubble';
@@ -1544,14 +1545,19 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
   const clearChat = () => {
     try {
-      // ── LLabs mode: tear down session so next message creates a fresh one ──
+      // ── LLabs mode: stop agent on backend + tear down client session ──
       if (isLLabsMode() && props.agentType) {
+        const sid = llabsSessionId();
         if (llabsEventSource) {
           llabsEventSource.close();
           llabsEventSource = null;
         }
         clearStoredSession(props.apiKey ?? '');
         setLLabsSessionId(null);
+        // Stop the agent on the backend (fire-and-forget, frees Docker container)
+        if (sid) {
+          stopSession(props.apiHost ?? '', sid, props.apiKey ?? '').catch(() => { /* fire-and-forget */ });
+        }
       }
 
       removeLocalStorageChatHistory(props.chatflowid!);

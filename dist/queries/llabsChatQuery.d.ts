@@ -59,6 +59,13 @@ export declare const getChatHistory: (apiHost: string, sessionId: string, apiKey
     /** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
     error?: Error | undefined;
 }>;
+export declare const stopSession: (apiHost: string, sessionId: string, apiKey: string) => Promise<{
+    data?: {
+        status: string;
+    } | undefined;
+    /** Build a unique storage key from the API key (uses first 12 chars as fingerprint). */
+    error?: Error | undefined;
+}>;
 /**
  * Build the SSE stream URL for a given session.
  * The caller should use `new EventSource(url)` or `fetchEventSource` to connect.

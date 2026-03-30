@@ -103,6 +103,16 @@ export const getChatHistory = (apiHost: string, sessionId: string, apiKey: strin
     url: `${apiHost}/api/channels/web/${sessionId}/history?limit=${limit}&api_key=${apiKey}`,
   });
 
+export const stopSession = (apiHost: string, sessionId: string, apiKey: string) =>
+  sendRequest<{ status: string }>({
+    method: 'POST',
+    url: `${apiHost}/api/channels/web/${sessionId}/stop`,
+    body: {} as any,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
 /**
  * Build the SSE stream URL for a given session.
  * The caller should use `new EventSource(url)` or `fetchEventSource` to connect.
