@@ -1364,6 +1364,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
 
     // ── LLabs mode: send via LLabs API ──────────────────────────────
     if (isLLabsMode()) {
+      setUserInput('');
       try {
         const sessionId = await ensureLLabsSession();
         if (!sessionId) {
