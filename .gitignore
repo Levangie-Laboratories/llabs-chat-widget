@@ -2,5 +2,7 @@ node_modules
 .idea
 .env
 demo.local.html
+demo-homepage.html
+demo-support.html
 .claude/settings.json
 .claude/settings.local.jsonpackage-lock.json
