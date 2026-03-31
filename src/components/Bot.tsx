@@ -22,6 +22,8 @@ import {
   touchSession,
   clearStoredSession,
   stopSession,
+  getStoredVisitorId,
+  storeVisitorId,
 } from '@/queries/llabsChatQuery';
 import { TextInput } from './inputs/textInput';
 import { GuestBubble } from './bubbles/GuestBubble';
@@ -702,12 +704,17 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       }
     }
 
-    // Init new session
-    const result = await initSession(apiHost, agentType, apiKey);
+    // Init new session — pass stored visitor_id for returning visitor recognition
+    const storedVisitorId = getStoredVisitorId(apiKey);
+    const result = await initSession(apiHost, agentType, apiKey, storedVisitorId);
     if (result.data) {
       const sid = result.data.session_id;
       setLLabsSessionId(sid);
       storeSession(props.apiKey ?? '', sid);
+      // Persist visitor token for future sessions (server handles 90-day expiry)
+      if (result.data.visitor_id) {
+        storeVisitorId(apiKey, result.data.visitor_id);
+      }
       connectLLabsStream(sid);
       return sid;
     }
@@ -1556,7 +1563,9 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setLLabsSessionId(null);
         // Stop the agent on the backend (fire-and-forget, frees Docker container)
         if (sid) {
-          stopSession(props.apiHost ?? '', sid, props.apiKey ?? '').catch(() => { /* fire-and-forget */ });
+          stopSession(props.apiHost ?? '', sid, props.apiKey ?? '').catch(() => {
+            /* fire-and-forget */
+          });
         }
       }
 

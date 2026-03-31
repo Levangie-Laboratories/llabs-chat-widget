@@ -5,6 +5,7 @@ import { sendRequest } from '@/utils/index';
 export type LLabsInitResponse = {
   session_id: string;
   stream_url: string;
+  visitor_id?: string;
 };
 
 export type LLabsMessageResponse = {
@@ -75,13 +76,40 @@ export const clearStoredSession = (apiKey: string) => {
   localStorage.removeItem(storageKey(apiKey));
 };
 
+// ── Visitor persistence (long-lived, no client-side expiry) ───────────
+
+/** Storage key for the long-lived visitor token (separate from session). */
+const visitorStorageKey = (apiKey: string): string => {
+  const fingerprint = apiKey.slice(0, 12).replace(/[^a-zA-Z0-9_-]/g, '');
+  return `llabs_visitor_${fingerprint}`;
+};
+
+export const getStoredVisitorId = (apiKey: string): string | null => {
+  try {
+    return localStorage.getItem(visitorStorageKey(apiKey));
+  } catch {
+    return null;
+  }
+};
+
+export const storeVisitorId = (apiKey: string, visitorId: string): void => {
+  try {
+    localStorage.setItem(visitorStorageKey(apiKey), visitorId);
+  } catch {
+    // localStorage unavailable — visitor treated as new next time
+  }
+};
+
 // ── API calls ──────────────────────────────────────────────────────────
 
-export const initSession = (apiHost: string, agentType: string, apiKey: string) =>
+export const initSession = (apiHost: string, agentType: string, apiKey: string, visitorId?: string | null) =>
   sendRequest<LLabsInitResponse>({
     method: 'POST',
     url: `${apiHost}/api/channels/web/init`,
-    body: { agent_type: agentType } as any,
+    body: {
+      agent_type: agentType,
+      ...(visitorId ? { visitor_id: visitorId } : {}),
+    } as any,
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
