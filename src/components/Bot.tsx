@@ -532,8 +532,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   // ── Consent gate ────────────────────────────────────────────────────
   const consentStorageKey = () => `llabs_consent_${(props.apiKey || props.chatflowid || '').slice(0, 16)}`;
   const [hasConsented, setHasConsented] = createSignal(
-    props.consentRequired === false ||
-    (typeof localStorage !== 'undefined' && localStorage.getItem(consentStorageKey()) === '1')
+    props.consentRequired === false || (typeof localStorage !== 'undefined' && localStorage.getItem(consentStorageKey()) === '1'),
   );
 
   // start input type
@@ -2784,18 +2783,6 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               </DeleteButton>
             </div>
           ) : null}
-          {hasConsented() && props.aiDisclosure && (
-            <div style={{
-              'font-size': '11px',
-              color: '#6b7280',
-              'text-align': 'center',
-              padding: '4px 12px',
-              'background-color': '#f9fafb',
-              'border-bottom': '1px solid #e5e7eb',
-            }}>
-              {props.aiDisclosure}
-            </div>
-          )}
           {!hasConsented() && (
             <ConsentGate
               aiDisclosure={props.aiDisclosure}
@@ -2806,259 +2793,287 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
             />
           )}
           {hasConsented() && (
-          <div class="relative flex flex-col w-full flex-1 min-h-0 justify-start z-0">
-            <div
-              ref={chatContainer}
-              class="overflow-y-scroll flex flex-col flex-grow min-w-full w-full px-3 pt-[70px] relative scrollable-container chatbot-chat-view"
-            >
-              <For each={[...messages()]}>
-                {(message, index) => {
-                  return (
-                    <>
-                      {message.type === 'userMessage' && (
-                        <GuestBubble
-                          message={message}
-                          apiHost={props.apiHost}
-                          chatflowid={props.chatflowid ?? ''}
-                          chatId={chatId()}
-                          backgroundColor={props.userMessage?.backgroundColor}
-                          textColor={props.userMessage?.textColor}
-                          showAvatar={props.userMessage?.showAvatar}
-                          avatarSrc={props.userMessage?.avatarSrc}
-                          fontSize={props.fontSize}
-                          renderHTML={props.renderHTML}
-                        />
-                      )}
-                      {message.type === 'apiMessage' && (
-                        <BotBubble
-                          message={message}
-                          fileAnnotations={message.fileAnnotations}
-                          chatflowid={props.chatflowid ?? ''}
-                          chatId={chatId()}
-                          apiHost={props.apiHost}
-                          backgroundColor={props.botMessage?.backgroundColor}
-                          textColor={props.botMessage?.textColor}
-                          feedbackColor={props.feedback?.color}
-                          showAvatar={props.botMessage?.showAvatar}
-                          avatarSrc={props.botMessage?.avatarSrc}
-                          chatFeedbackStatus={chatFeedbackStatus()}
-                          fontSize={props.fontSize}
-                          isLoading={loading() && index() === messages().length - 1}
-                          showAgentMessages={props.showAgentMessages}
-                          handleActionClick={(elem, action) => handleActionClick(elem, action)}
-                          sourceDocsTitle={props.sourceDocsTitle}
-                          handleSourceDocumentsClick={(sourceDocuments) => {
-                            setSourcePopupSrc(sourceDocuments);
-                            setSourcePopupOpen(true);
-                          }}
-                          dateTimeToggle={props.dateTimeToggle}
-                          renderHTML={props.renderHTML}
-                          isTTSEnabled={isTTSEnabled()}
-                          isTTSLoading={isTTSLoading()}
-                          isTTSPlaying={isTTSPlaying()}
-                          handleTTSClick={handleTTSClick}
-                          handleTTSStop={handleTTSStop}
-                          hasCustomHeader={props.hasCustomHeader}
-                          dialogContainer={props.dialogContainer}
-                        />
-                      )}
-                      {message.type === 'leadCaptureMessage' && leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid!)?.lead && (
-                        <LeadCaptureBubble
-                          message={message}
-                          chatflowid={props.chatflowid ?? ''}
-                          chatId={chatId()}
-                          apiHost={props.apiHost}
-                          backgroundColor={props.botMessage?.backgroundColor}
-                          textColor={props.botMessage?.textColor}
-                          fontSize={props.fontSize}
-                          showAvatar={props.botMessage?.showAvatar}
-                          avatarSrc={props.botMessage?.avatarSrc}
-                          leadsConfig={leadsConfig()}
-                          sendButtonColor={props.textInput?.sendButtonColor}
-                          isLeadSaved={isLeadSaved()}
-                          setIsLeadSaved={setIsLeadSaved}
-                          setLeadEmail={setLeadEmail}
-                        />
-                      )}
-                      {message.type === 'userMessage' && loading() && index() === messages().length - 1 && <LoadingBubble />}
-                      {message.type === 'apiMessage' && message.message === '' && loading() && index() === messages().length - 1 && <LoadingBubble />}
-                    </>
-                  );
-                }}
-              </For>
-              <Show when={loading()}>
-                <div ref={bottomSpacer} style={{ 'flex-grow': '1' }} />
-              </Show>
-            </div>
-            <Show when={showScrollButton()}>
-              <div class="absolute bottom-[140px] left-1/2 -translate-x-1/2 z-10">
-                <button
-                  class="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-md border border-gray-200 text-gray-500 hover:text-gray-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  onClick={forceScrollToBottom}
-                  title="Scroll to bottom"
-                  type="button"
-                >
-                  <ChevronDownIcon class="w-5 h-5" />
-                </button>
+            <div class="relative flex flex-col w-full flex-1 min-h-0 justify-start z-0">
+              <div
+                ref={chatContainer}
+                class="overflow-y-scroll flex flex-col flex-grow min-w-full w-full px-3 pt-[70px] relative scrollable-container chatbot-chat-view"
+              >
+                {props.aiDisclosure && (
+                  <div
+                    style={{
+                      'font-size': '11px',
+                      color: '#6b7280',
+                      'text-align': 'center',
+                      padding: '6px 12px',
+                      'background-color': '#f9fafb',
+                      'border-radius': '8px',
+                      'margin-bottom': '8px',
+                    }}
+                  >
+                    {props.aiDisclosure}
+                  </div>
+                )}
+                <For each={[...messages()]}>
+                  {(message, index) => {
+                    return (
+                      <>
+                        {message.type === 'userMessage' && (
+                          <GuestBubble
+                            message={message}
+                            apiHost={props.apiHost}
+                            chatflowid={props.chatflowid ?? ''}
+                            chatId={chatId()}
+                            backgroundColor={props.userMessage?.backgroundColor}
+                            textColor={props.userMessage?.textColor}
+                            showAvatar={props.userMessage?.showAvatar}
+                            avatarSrc={props.userMessage?.avatarSrc}
+                            fontSize={props.fontSize}
+                            renderHTML={props.renderHTML}
+                          />
+                        )}
+                        {message.type === 'apiMessage' && (
+                          <BotBubble
+                            message={message}
+                            fileAnnotations={message.fileAnnotations}
+                            chatflowid={props.chatflowid ?? ''}
+                            chatId={chatId()}
+                            apiHost={props.apiHost}
+                            backgroundColor={props.botMessage?.backgroundColor}
+                            textColor={props.botMessage?.textColor}
+                            feedbackColor={props.feedback?.color}
+                            showAvatar={props.botMessage?.showAvatar}
+                            avatarSrc={props.botMessage?.avatarSrc}
+                            chatFeedbackStatus={chatFeedbackStatus()}
+                            fontSize={props.fontSize}
+                            isLoading={loading() && index() === messages().length - 1}
+                            showAgentMessages={props.showAgentMessages}
+                            handleActionClick={(elem, action) => handleActionClick(elem, action)}
+                            sourceDocsTitle={props.sourceDocsTitle}
+                            handleSourceDocumentsClick={(sourceDocuments) => {
+                              setSourcePopupSrc(sourceDocuments);
+                              setSourcePopupOpen(true);
+                            }}
+                            dateTimeToggle={props.dateTimeToggle}
+                            renderHTML={props.renderHTML}
+                            isTTSEnabled={isTTSEnabled()}
+                            isTTSLoading={isTTSLoading()}
+                            isTTSPlaying={isTTSPlaying()}
+                            handleTTSClick={handleTTSClick}
+                            handleTTSStop={handleTTSStop}
+                            hasCustomHeader={props.hasCustomHeader}
+                            dialogContainer={props.dialogContainer}
+                          />
+                        )}
+                        {message.type === 'leadCaptureMessage' && leadsConfig()?.status && !getLocalStorageChatflow(props.chatflowid!)?.lead && (
+                          <LeadCaptureBubble
+                            message={message}
+                            chatflowid={props.chatflowid ?? ''}
+                            chatId={chatId()}
+                            apiHost={props.apiHost}
+                            backgroundColor={props.botMessage?.backgroundColor}
+                            textColor={props.botMessage?.textColor}
+                            fontSize={props.fontSize}
+                            showAvatar={props.botMessage?.showAvatar}
+                            avatarSrc={props.botMessage?.avatarSrc}
+                            leadsConfig={leadsConfig()}
+                            sendButtonColor={props.textInput?.sendButtonColor}
+                            isLeadSaved={isLeadSaved()}
+                            setIsLeadSaved={setIsLeadSaved}
+                            setLeadEmail={setLeadEmail}
+                          />
+                        )}
+                        {message.type === 'userMessage' && loading() && index() === messages().length - 1 && <LoadingBubble />}
+                        {message.type === 'apiMessage' && message.message === '' && loading() && index() === messages().length - 1 && (
+                          <LoadingBubble />
+                        )}
+                      </>
+                    );
+                  }}
+                </For>
+                <Show when={loading()}>
+                  <div ref={bottomSpacer} style={{ 'flex-grow': '1' }} />
+                </Show>
               </div>
-            </Show>
-            <Show when={messages().length === 1}>
-              <Show when={starterPrompts().length > 0}>
-                <div class="w-full flex flex-row flex-wrap px-5 py-[10px] gap-2">
-                  <For each={[...starterPrompts()]}>
-                    {(key) => (
-                      <StarterPromptBubble
-                        prompt={key}
-                        onPromptClick={() => promptClick(key)}
-                        starterPromptFontSize={botProps.starterPromptFontSize} // Pass it here as a number
-                      />
-                    )}
-                  </For>
+              <Show when={showScrollButton()}>
+                <div class="absolute bottom-[140px] left-1/2 -translate-x-1/2 z-10">
+                  <button
+                    class="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-md border border-gray-200 text-gray-500 hover:text-gray-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                    onClick={forceScrollToBottom}
+                    title="Scroll to bottom"
+                    type="button"
+                  >
+                    <ChevronDownIcon class="w-5 h-5" />
+                  </button>
                 </div>
               </Show>
-            </Show>
-            <Show when={messages().length > 2 && followUpPromptsStatus()}>
-              <Show when={followUpPrompts().length > 0}>
-                <>
-                  <div class="flex items-center gap-1 px-5">
-                    <SparklesIcon class="w-4 h-4" />
-                    <span class="text-sm text-gray-700">Try these prompts</span>
-                  </div>
+              <Show when={messages().length === 1}>
+                <Show when={starterPrompts().length > 0}>
                   <div class="w-full flex flex-row flex-wrap px-5 py-[10px] gap-2">
-                    <For each={[...followUpPrompts()]}>
-                      {(prompt, index) => (
-                        <FollowUpPromptBubble
-                          prompt={prompt}
-                          onPromptClick={() => followUpPromptClick(prompt)}
+                    <For each={[...starterPrompts()]}>
+                      {(key) => (
+                        <StarterPromptBubble
+                          prompt={key}
+                          onPromptClick={() => promptClick(key)}
                           starterPromptFontSize={botProps.starterPromptFontSize} // Pass it here as a number
                         />
                       )}
                     </For>
                   </div>
-                </>
+                </Show>
               </Show>
-            </Show>
-            <Show when={previews().length > 0}>
-              <div class="w-full flex items-center justify-start gap-2 px-5 pt-2 border-t border-[#eeeeee]">
-                <For each={[...previews()]}>{(item) => <>{previewDisplay(item)}</>}</For>
+              <Show when={messages().length > 2 && followUpPromptsStatus()}>
+                <Show when={followUpPrompts().length > 0}>
+                  <>
+                    <div class="flex items-center gap-1 px-5">
+                      <SparklesIcon class="w-4 h-4" />
+                      <span class="text-sm text-gray-700">Try these prompts</span>
+                    </div>
+                    <div class="w-full flex flex-row flex-wrap px-5 py-[10px] gap-2">
+                      <For each={[...followUpPrompts()]}>
+                        {(prompt, index) => (
+                          <FollowUpPromptBubble
+                            prompt={prompt}
+                            onPromptClick={() => followUpPromptClick(prompt)}
+                            starterPromptFontSize={botProps.starterPromptFontSize} // Pass it here as a number
+                          />
+                        )}
+                      </For>
+                    </div>
+                  </>
+                </Show>
+              </Show>
+              <Show when={previews().length > 0}>
+                <div class="w-full flex items-center justify-start gap-2 px-5 pt-2 border-t border-[#eeeeee]">
+                  <For each={[...previews()]}>{(item) => <>{previewDisplay(item)}</>}</For>
+                </div>
+              </Show>
+              <div class="w-full px-5 pt-2 pb-1">
+                {isRecording() ? (
+                  <>
+                    {recordingNotSupported() ? (
+                      <div class="w-full flex items-center justify-between p-4 border border-[#eeeeee]">
+                        <div class="w-full flex items-center justify-between gap-3">
+                          <span class="text-base">To record audio, use modern browsers like Chrome or Firefox that support audio recording.</span>
+                          <button
+                            class="py-2 px-4 justify-center flex items-center bg-red-500 text-white rounded-md"
+                            type="button"
+                            onClick={() => onRecordingCancelled()}
+                          >
+                            Okay
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        class="h-[58px] flex items-center justify-between chatbot-input border border-[#eeeeee]"
+                        data-testid="input"
+                        style={{
+                          margin: 'auto',
+                          'background-color': props.textInput?.backgroundColor ?? defaultBackgroundColor,
+                          color: props.textInput?.textColor ?? defaultTextColor,
+                        }}
+                      >
+                        <div class="flex items-center gap-3 px-4 py-2">
+                          <span>
+                            <CircleDotIcon color="red" />
+                          </span>
+                          <span>{elapsedTime() || '00:00'}</span>
+                          {isLoadingRecording() && <span class="ml-1.5">Sending...</span>}
+                        </div>
+                        <div class="flex items-center">
+                          <CancelButton buttonColor={props.textInput?.sendButtonColor} type="button" class="m-0" on:click={onRecordingCancelled}>
+                            <span style={{ 'font-family': 'Poppins, sans-serif' }}>Send</span>
+                          </CancelButton>
+                          <SendButton
+                            sendButtonColor={props.textInput?.sendButtonColor}
+                            type="button"
+                            isDisabled={loading()}
+                            class="m-0"
+                            on:click={onRecordingStopped}
+                          >
+                            <span style={{ 'font-family': 'Poppins, sans-serif' }}>Send</span>
+                          </SendButton>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <TextInput
+                    backgroundColor={props.textInput?.backgroundColor}
+                    textColor={props.textInput?.textColor}
+                    placeholder={props.textInput?.placeholder}
+                    sendButtonColor={props.textInput?.sendButtonColor}
+                    maxChars={props.textInput?.maxChars}
+                    maxCharsWarningMessage={props.textInput?.maxCharsWarningMessage}
+                    autoFocus={props.textInput?.autoFocus}
+                    fontSize={props.fontSize}
+                    disabled={getInputDisabled()}
+                    inputValue={userInput()}
+                    onInputChange={(value) => setUserInput(value)}
+                    onSubmit={handleSubmit}
+                    uploadsConfig={uploadsConfig()}
+                    isFullFileUpload={fullFileUpload()}
+                    fullFileUploadAllowedTypes={fullFileUploadAllowedTypes()}
+                    setPreviews={setPreviews}
+                    onMicrophoneClicked={onMicrophoneClicked}
+                    handleFileChange={handleFileChange}
+                    sendMessageSound={props.textInput?.sendMessageSound}
+                    sendSoundLocation={props.textInput?.sendSoundLocation}
+                    enableInputHistory={props.textInput?.enableInputHistory ?? true}
+                    maxHistorySize={10}
+                    isLoading={loading()}
+                    showAbortButton={loading() && hasAgentFlowExecutedData()}
+                    isMessageStopping={isMessageStopping()}
+                    onAbort={handleAbort}
+                  />
+                )}
               </div>
-            </Show>
-            <div class="w-full px-5 pt-2 pb-1">
-              {isRecording() ? (
-                <>
-                  {recordingNotSupported() ? (
-                    <div class="w-full flex items-center justify-between p-4 border border-[#eeeeee]">
-                      <div class="w-full flex items-center justify-between gap-3">
-                        <span class="text-base">To record audio, use modern browsers like Chrome or Firefox that support audio recording.</span>
-                        <button
-                          class="py-2 px-4 justify-center flex items-center bg-red-500 text-white rounded-md"
-                          type="button"
-                          onClick={() => onRecordingCancelled()}
-                        >
-                          Okay
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      class="h-[58px] flex items-center justify-between chatbot-input border border-[#eeeeee]"
-                      data-testid="input"
-                      style={{
-                        margin: 'auto',
-                        'background-color': props.textInput?.backgroundColor ?? defaultBackgroundColor,
-                        color: props.textInput?.textColor ?? defaultTextColor,
-                      }}
-                    >
-                      <div class="flex items-center gap-3 px-4 py-2">
-                        <span>
-                          <CircleDotIcon color="red" />
-                        </span>
-                        <span>{elapsedTime() || '00:00'}</span>
-                        {isLoadingRecording() && <span class="ml-1.5">Sending...</span>}
-                      </div>
-                      <div class="flex items-center">
-                        <CancelButton buttonColor={props.textInput?.sendButtonColor} type="button" class="m-0" on:click={onRecordingCancelled}>
-                          <span style={{ 'font-family': 'Poppins, sans-serif' }}>Send</span>
-                        </CancelButton>
-                        <SendButton
-                          sendButtonColor={props.textInput?.sendButtonColor}
-                          type="button"
-                          isDisabled={loading()}
-                          class="m-0"
-                          on:click={onRecordingStopped}
-                        >
-                          <span style={{ 'font-family': 'Poppins, sans-serif' }}>Send</span>
-                        </SendButton>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <TextInput
-                  backgroundColor={props.textInput?.backgroundColor}
-                  textColor={props.textInput?.textColor}
-                  placeholder={props.textInput?.placeholder}
-                  sendButtonColor={props.textInput?.sendButtonColor}
-                  maxChars={props.textInput?.maxChars}
-                  maxCharsWarningMessage={props.textInput?.maxCharsWarningMessage}
-                  autoFocus={props.textInput?.autoFocus}
-                  fontSize={props.fontSize}
-                  disabled={getInputDisabled()}
-                  inputValue={userInput()}
-                  onInputChange={(value) => setUserInput(value)}
-                  onSubmit={handleSubmit}
-                  uploadsConfig={uploadsConfig()}
-                  isFullFileUpload={fullFileUpload()}
-                  fullFileUploadAllowedTypes={fullFileUploadAllowedTypes()}
-                  setPreviews={setPreviews}
-                  onMicrophoneClicked={onMicrophoneClicked}
-                  handleFileChange={handleFileChange}
-                  sendMessageSound={props.textInput?.sendMessageSound}
-                  sendSoundLocation={props.textInput?.sendSoundLocation}
-                  enableInputHistory={props.textInput?.enableInputHistory ?? true}
-                  maxHistorySize={10}
-                  isLoading={loading()}
-                  showAbortButton={loading() && hasAgentFlowExecutedData()}
-                  isMessageStopping={isMessageStopping()}
-                  onAbort={handleAbort}
-                />
-              )}
+              <Badge
+                footer={props.footer}
+                badgeBackgroundColor={props.badgeBackgroundColor}
+                poweredByTextColor={props.poweredByTextColor}
+                botContainer={botContainer}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  'justify-content': 'center',
+                  gap: '12px',
+                  padding: '4px 12px',
+                  'font-size': '10px',
+                  color: '#9ca3af',
+                  'border-top': '1px solid #f3f4f6',
+                }}
+              >
+                {props.privacyPolicyUrl && (
+                  <a
+                    href={props.privacyPolicyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#9ca3af', 'text-decoration': 'underline' }}
+                  >
+                    Privacy
+                  </a>
+                )}
+                {props.humanEscalation && typeof props.humanEscalation === 'object' && props.humanEscalation.contact && (
+                  <a
+                    href={
+                      props.humanEscalation.contact.includes('@')
+                        ? `mailto:${props.humanEscalation.contact}`
+                        : props.humanEscalation.contact.startsWith('http')
+                          ? props.humanEscalation.contact
+                          : `tel:${props.humanEscalation.contact}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#9ca3af', 'text-decoration': 'underline' }}
+                  >
+                    Talk to a human
+                  </a>
+                )}
+                {!props.humanEscalation && !props.privacyPolicyUrl && <span>Contact the website owner for assistance</span>}
+              </div>
             </div>
-            <Badge
-              footer={props.footer}
-              badgeBackgroundColor={props.badgeBackgroundColor}
-              poweredByTextColor={props.poweredByTextColor}
-              botContainer={botContainer}
-            />
-            <div style={{
-              display: 'flex',
-              'justify-content': 'center',
-              gap: '12px',
-              padding: '4px 12px',
-              'font-size': '10px',
-              color: '#9ca3af',
-              'border-top': '1px solid #f3f4f6',
-            }}>
-              {props.privacyPolicyUrl && (
-                <a href={props.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', 'text-decoration': 'underline' }}>
-                  Privacy
-                </a>
-              )}
-              {props.humanEscalation && typeof props.humanEscalation === 'object' && props.humanEscalation.contact && (
-                <a
-                  href={props.humanEscalation.contact.includes('@') ? `mailto:${props.humanEscalation.contact}` : props.humanEscalation.contact.startsWith('http') ? props.humanEscalation.contact : `tel:${props.humanEscalation.contact}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#9ca3af', 'text-decoration': 'underline' }}
-                >
-                  Talk to a human
-                </a>
-              )}
-              {!props.humanEscalation && !props.privacyPolicyUrl && (
-                <span>Contact the website owner for assistance</span>
-              )}
-            </div>
-          </div>
           )}
         </div>
       )}

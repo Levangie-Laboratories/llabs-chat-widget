@@ -9,9 +9,7 @@ type ConsentGateProps = {
 };
 
 export const ConsentGate = (props: ConsentGateProps) => {
-  const [consented, setConsented] = createSignal(
-    typeof localStorage !== 'undefined' && localStorage.getItem(props.storageKey) === '1'
-  );
+  const [consented, setConsented] = createSignal(typeof localStorage !== 'undefined' && localStorage.getItem(props.storageKey) === '1');
 
   // If already consented, immediately trigger and hide
   if (consented()) {
@@ -22,7 +20,9 @@ export const ConsentGate = (props: ConsentGateProps) => {
   const handleConsent = () => {
     try {
       localStorage.setItem(props.storageKey, '1');
-    } catch (_) { /* localStorage may be unavailable in some contexts */ }
+    } catch (_) {
+      /* localStorage may be unavailable in some contexts */
+    }
     setConsented(true);
     props.onConsent();
   };
@@ -65,12 +65,7 @@ export const ConsentGate = (props: ConsentGateProps) => {
           <p style={{ margin: '0 0 8px 0' }}>
             By continuing, you agree to the{' '}
             {props.privacyPolicyUrl ? (
-              <a
-                href={props.privacyPolicyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#3b82f6', 'text-decoration': 'underline' }}
-              >
+              <a href={props.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', 'text-decoration': 'underline' }}>
                 Privacy Policy
               </a>
             ) : (
@@ -78,22 +73,16 @@ export const ConsentGate = (props: ConsentGateProps) => {
             )}
             {props.termsUrl && (
               <>
-                {' '}and{' '}
-                <a
-                  href={props.termsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#3b82f6', 'text-decoration': 'underline' }}
-                >
+                {' '}
+                and{' '}
+                <a href={props.termsUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', 'text-decoration': 'underline' }}>
                   Terms of Service
                 </a>
               </>
             )}
             .
           </p>
-          <p style={{ margin: '0', 'font-size': '11px', color: '#9ca3af' }}>
-            Your messages are processed by AI.
-          </p>
+          <p style={{ margin: '0', 'font-size': '11px', color: '#9ca3af' }}>Your messages are processed by AI.</p>
         </div>
         <button
           onClick={handleConsent}
