@@ -9,6 +9,11 @@ export const defaultBotProps: BubbleProps = {
   chatflowConfig: undefined,
   theme: undefined,
   observersConfig: undefined,
+  aiDisclosure: 'You are chatting with an AI assistant',
+  privacyPolicyUrl: undefined,
+  termsUrl: undefined,
+  consentRequired: true,
+  humanEscalation: undefined,
 };
 
 export const CHAT_HEADER_HEIGHT = 50;

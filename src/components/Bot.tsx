@@ -59,6 +59,7 @@ import {
 import { FollowUpPromptBubble } from '@/components/bubbles/FollowUpPromptBubble';
 import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event-source';
 import { CHAT_HEADER_HEIGHT } from '@/constants';
+import { ConsentGate } from './ConsentGate';
 
 export type FileEvent<T = EventTarget> = {
   target: T;
@@ -202,6 +203,11 @@ export type BotProps = {
   closeBot?: () => void;
   hasCustomHeader?: boolean;
   dialogContainer?: HTMLElement;
+  aiDisclosure?: string;
+  privacyPolicyUrl?: string;
+  termsUrl?: string;
+  consentRequired?: boolean;
+  humanEscalation?: { contact: string } | false;
 };
 
 export type LeadsConfig = {
@@ -522,6 +528,13 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   const [feedback, setFeedback] = createSignal('');
   const [pendingActionData, setPendingActionData] = createSignal(null);
   const [feedbackType, setFeedbackType] = createSignal('');
+
+  // ── Consent gate ────────────────────────────────────────────────────
+  const consentStorageKey = () => `llabs_consent_${(props.apiKey || props.chatflowid || '').slice(0, 16)}`;
+  const [hasConsented, setHasConsented] = createSignal(
+    props.consentRequired === false ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem(consentStorageKey()) === '1')
+  );
 
   // start input type
   const [startInputType, setStartInputType] = createSignal('');
@@ -2771,6 +2784,28 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               </DeleteButton>
             </div>
           ) : null}
+          {hasConsented() && props.aiDisclosure && (
+            <div style={{
+              'font-size': '11px',
+              color: '#6b7280',
+              'text-align': 'center',
+              padding: '4px 12px',
+              'background-color': '#f9fafb',
+              'border-bottom': '1px solid #e5e7eb',
+            }}>
+              {props.aiDisclosure}
+            </div>
+          )}
+          {!hasConsented() && (
+            <ConsentGate
+              aiDisclosure={props.aiDisclosure}
+              privacyPolicyUrl={props.privacyPolicyUrl}
+              termsUrl={props.termsUrl}
+              storageKey={consentStorageKey()}
+              onConsent={() => setHasConsented(true)}
+            />
+          )}
+          {hasConsented() && (
           <div class="relative flex flex-col w-full flex-1 min-h-0 justify-start z-0">
             <div
               ref={chatContainer}
@@ -2995,7 +3030,36 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               poweredByTextColor={props.poweredByTextColor}
               botContainer={botContainer}
             />
+            <div style={{
+              display: 'flex',
+              'justify-content': 'center',
+              gap: '12px',
+              padding: '4px 12px',
+              'font-size': '10px',
+              color: '#9ca3af',
+              'border-top': '1px solid #f3f4f6',
+            }}>
+              {props.privacyPolicyUrl && (
+                <a href={props.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', 'text-decoration': 'underline' }}>
+                  Privacy
+                </a>
+              )}
+              {props.humanEscalation && typeof props.humanEscalation === 'object' && props.humanEscalation.contact && (
+                <a
+                  href={props.humanEscalation.contact.includes('@') ? `mailto:${props.humanEscalation.contact}` : props.humanEscalation.contact.startsWith('http') ? props.humanEscalation.contact : `tel:${props.humanEscalation.contact}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#9ca3af', 'text-decoration': 'underline' }}
+                >
+                  Talk to a human
+                </a>
+              )}
+              {!props.humanEscalation && !props.privacyPolicyUrl && (
+                <span>Contact the website owner for assistance</span>
+              )}
+            </div>
           </div>
+          )}
         </div>
       )}
       {sourcePopupOpen() && <Popup isOpen={sourcePopupOpen()} value={sourcePopupSrc()} onClose={() => setSourcePopupOpen(false)} />}

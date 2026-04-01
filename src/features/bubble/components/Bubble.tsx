@@ -170,6 +170,11 @@ export const Bubble = (props: BubbleProps) => {
               hasCustomHeader={!!bubbleProps.theme?.chatWindow?.headerHtml}
               closeBot={closeBot}
               dialogContainer={bubbleContainerRef()}
+              aiDisclosure={props.aiDisclosure}
+              privacyPolicyUrl={props.privacyPolicyUrl}
+              termsUrl={props.termsUrl}
+              consentRequired={props.consentRequired}
+              humanEscalation={props.humanEscalation}
             />
           </div>
         </Show>

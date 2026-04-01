@@ -125,6 +125,13 @@ export type BotProps = {
     closeBot?: () => void;
     hasCustomHeader?: boolean;
     dialogContainer?: HTMLElement;
+    aiDisclosure?: string;
+    privacyPolicyUrl?: string;
+    termsUrl?: string;
+    consentRequired?: boolean;
+    humanEscalation?: {
+        contact: string;
+    } | false;
 };
 export type LeadsConfig = {
     status: boolean;
