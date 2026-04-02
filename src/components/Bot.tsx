@@ -2781,6 +2781,33 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               >
                 <span style={{ 'font-family': 'Poppins, sans-serif' }}>Clear</span>
               </DeleteButton>
+              {isLLabsMode() && llabsSessionId() && (
+                <button
+                  type="button"
+                  class="my-2 ml-1 mr-2"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    'font-family': 'Poppins, sans-serif',
+                    'font-size': '13px',
+                    opacity: '0.8',
+                    color: props.bubbleTextColor || '#ffffff',
+                    padding: '4px 8px',
+                    'border-radius': '4px',
+                    transition: 'opacity 0.2s',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseOut={(e) => (e.currentTarget.style.opacity = '0.8')}
+                  onClick={() => {
+                    clearChat();
+                    if (props.onClose) props.onClose();
+                  }}
+                  title="End this conversation"
+                >
+                  End Chat
+                </button>
+              )}
             </div>
           ) : null}
           {!hasConsented() && (
