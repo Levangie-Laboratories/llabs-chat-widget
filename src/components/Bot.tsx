@@ -2781,33 +2781,6 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               >
                 <span style={{ 'font-family': 'Poppins, sans-serif' }}>Clear</span>
               </DeleteButton>
-              {isLLabsMode() && llabsSessionId() && (
-                <button
-                  type="button"
-                  class="my-2 ml-1 mr-2"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    'font-family': 'Poppins, sans-serif',
-                    'font-size': '13px',
-                    opacity: '0.8',
-                    color: props.bubbleTextColor || '#ffffff',
-                    padding: '4px 8px',
-                    'border-radius': '4px',
-                    transition: 'opacity 0.2s',
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseOut={(e) => (e.currentTarget.style.opacity = '0.8')}
-                  onClick={() => {
-                    clearChat();
-                    if (props.onClose) props.onClose();
-                  }}
-                  title="End this conversation"
-                >
-                  End Chat
-                </button>
-              )}
             </div>
           ) : null}
           {!hasConsented() && (
@@ -3099,6 +3072,35 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                   </a>
                 )}
                 {!props.humanEscalation && !props.privacyPolicyUrl && <span>Contact the website owner for assistance</span>}
+                {isLLabsMode() && llabsSessionId() && (
+                  <button
+                    onClick={() => {
+                      clearChat();
+                      if (props.onClose) props.onClose();
+                    }}
+                    title="End this conversation"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#9ca3af',
+                      'text-decoration': 'underline',
+                      'font-size': 'inherit',
+                      'font-family': 'inherit',
+                      padding: '0',
+                      display: 'inline-flex',
+                      'align-items': 'center',
+                      gap: '3px',
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    End chat
+                  </button>
+                )}
               </div>
             </div>
           )}
