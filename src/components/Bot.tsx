@@ -652,7 +652,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setLoading(false);
         setMessages((prev) => [
           ...prev,
-          { message: 'Connection lost. Send a message to reconnect.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+          { message: 'Your session has ended. Send a new message to start a fresh conversation.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
         ]);
         scrollToBottom();
       }
@@ -1393,7 +1393,19 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         }
         const msgResult = await sendLLabsMessage(props.apiHost ?? '', sessionId, value as string, props.apiKey ?? '');
         if (msgResult.error) {
-          handleError(`Error sending message: ${msgResult.error}`);
+          const errStr = String(msgResult.error).toLowerCase();
+          if (errStr.includes('not active') || errStr.includes('not running') || errStr.includes('not found')) {
+            // Session expired (agent reclaimed after idle) — clear it and prompt restart
+            if (llabsEventSource) {
+              llabsEventSource.close();
+              llabsEventSource = null;
+            }
+            setLLabsSessionId(null);
+            clearStoredSession(props.apiKey ?? '');
+            handleError('Your session has ended. Send a new message to start a fresh conversation.');
+          } else {
+            handleError(`Error sending message: ${msgResult.error}`);
+          }
         }
         // Response will arrive via the SSE stream — loading stays true until then
       } catch (err: any) {
@@ -3093,7 +3105,17 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                       gap: '3px',
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                       <polyline points="16 17 21 12 16 7" />
                       <line x1="21" y1="12" x2="9" y2="12" />
