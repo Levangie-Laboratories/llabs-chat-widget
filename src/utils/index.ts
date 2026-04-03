@@ -60,6 +60,8 @@ export const sendRequest = async <ResponseData>(
 
       if (typeof data === 'object' && 'error' in data) {
         errorMessage = data.error;
+      } else if (typeof data === 'object' && 'detail' in data) {
+        errorMessage = data.detail;
       } else {
         errorMessage = data || response.statusText;
       }

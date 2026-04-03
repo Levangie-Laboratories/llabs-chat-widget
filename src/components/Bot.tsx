@@ -652,7 +652,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setLoading(false);
         setMessages((prev) => [
           ...prev,
-          { message: 'Your session has ended. Send a new message to start a fresh conversation.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+          { message: 'Your session has ended. Tap the Clear button to start a new conversation.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
         ]);
         scrollToBottom();
       }
@@ -706,7 +706,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setMessages((prev) => [
           ...prev,
           {
-            message: 'Your previous conversation has ended. Send a message to start a new one.',
+            message: 'Your previous conversation has ended. Tap the Clear button to start a new conversation.',
             type: 'apiMessage' as messageType,
             dateTime: new Date().toISOString(),
           },
@@ -1402,7 +1402,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
             }
             setLLabsSessionId(null);
             clearStoredSession(props.apiKey ?? '');
-            handleError('Your session has ended. Send a new message to start a fresh conversation.');
+            handleError('Your session has ended. Tap the Clear button to start a new conversation.');
           } else {
             handleError(`Error sending message: ${msgResult.error}`);
           }
@@ -1700,7 +1700,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           setMessages([
             { message: props.welcomeMessage ?? defaultWelcomeMessage, type: 'apiMessage' },
             {
-              message: 'Your previous conversation has ended. Send a message to start a new one.',
+              message: 'Your previous conversation has ended. Tap the Clear button to start a new conversation.',
               type: 'apiMessage' as messageType,
               dateTime: new Date().toISOString(),
             },
