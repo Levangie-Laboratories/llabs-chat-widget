@@ -510,6 +510,31 @@ export const BotBubble = (props: Props) => {
                           &nbsp;
                           {action.label}
                         </button>
+                      ) : action.type === 'cta-button' ? (
+                        <button
+                          type="button"
+                          class="px-4 py-2 font-medium border rounded-full transition-all duration-300 flex items-center space-x-2"
+                          style={{
+                            color: action.color || '#6366f1',
+                            'border-color': action.color || '#6366f1',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = action.color || '#6366f1';
+                            e.currentTarget.style.color = '#ffffff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = action.color || '#6366f1';
+                          }}
+                          onClick={() => {
+                            if (action.url) {
+                              window.open(action.url, action.openInNewTab !== false ? '_blank' : '_self');
+                            }
+                            props.handleActionClick(action, props.message.action);
+                          }}
+                        >
+                          {action.label}
+                        </button>
                       ) : (
                         <button type="button">{action.label}</button>
                       )}

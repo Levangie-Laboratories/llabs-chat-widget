@@ -44,6 +44,9 @@ export type IAction = {
     elements?: Array<{
         type: string;
         label: string;
+        color?: string;
+        url?: string;
+        openInNewTab?: boolean;
     }>;
     mapping?: {
         approve: string;

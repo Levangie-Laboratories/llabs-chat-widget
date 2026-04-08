@@ -112,6 +112,9 @@ export type IAction = {
   elements?: Array<{
     type: string;
     label: string;
+    color?: string;
+    url?: string;
+    openInNewTab?: boolean;
   }>;
   mapping?: {
     approve: string;
@@ -634,6 +637,17 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       }
     });
 
+    es.addEventListener('action', (ev: MessageEvent) => {
+      if (llabsSessionId() !== mySessionId) return;
+      try {
+        const data = JSON.parse(ev.data);
+        updateLastMessageAction(data);
+        scrollToBottom();
+      } catch {
+        // ignore parse errors
+      }
+    });
+
     es.addEventListener('heartbeat', () => {
       // keep-alive, nothing to do
     });
@@ -652,7 +666,11 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         setLoading(false);
         setMessages((prev) => [
           ...prev,
-          { message: 'Your session has ended. Tap the Clear button to start a new conversation.', type: 'apiMessage' as messageType, dateTime: new Date().toISOString() },
+          {
+            message: 'Your session has ended. Tap the Clear button to start a new conversation.',
+            type: 'apiMessage' as messageType,
+            dateTime: new Date().toISOString(),
+          },
         ]);
         scrollToBottom();
       }
@@ -1548,7 +1566,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   };
 
   const handleActionClick = async (elem: any, action: IAction | undefined | null) => {
-    setUserInput(elem.label);
+    // Clear action buttons from the message
     setMessages((data) => {
       const updated = data.map((item, i) => {
         if (i === data.length - 1) {
@@ -1559,6 +1577,15 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       addChatMessage(updated);
       return [...updated];
     });
+
+    // CTA buttons with URLs: open the link, notify backend, done
+    if (elem.type === 'cta-button' && elem.url) {
+      setUserInput(elem.label);
+      handleSubmit(elem.label, action);
+      return;
+    }
+
+    setUserInput(elem.label);
     if (elem.type.includes('agentflowv2')) {
       const type = elem.type.includes('approve') ? 'proceed' : 'reject';
       setFeedbackType(type);
