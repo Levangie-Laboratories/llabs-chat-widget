@@ -641,7 +641,10 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       if (llabsSessionId() !== mySessionId) return;
       try {
         const data = JSON.parse(ev.data);
-        updateLastMessageAction(data);
+        // Normalize agent pipeline action format: extract elements from result or parameters
+        const elements = data.result?.elements || data.parameters?.elements;
+        const actionData = elements ? { elements } : data;
+        updateLastMessageAction(actionData);
         scrollToBottom();
       } catch {
         // ignore parse errors
