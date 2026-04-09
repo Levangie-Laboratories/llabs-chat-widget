@@ -600,6 +600,9 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     // when multiple widgets with different wk_ keys share the same origin.
     const mySessionId = sessionId;
 
+    // Buffer for pending CTA actions that arrive before their associated message
+    let pendingAction: any = null;
+
     es.addEventListener('message', (ev: MessageEvent) => {
       // Only process events for our session
       if (llabsSessionId() !== mySessionId) return;
@@ -608,11 +611,22 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         if (data.role === 'assistant' && data.content) {
           // If loading (waiting for first token), add a new bot message
           if (loading()) {
-            setMessages((prev) => [...prev, { message: data.content, type: 'apiMessage', dateTime: new Date().toISOString() }]);
+            const newMsg: any = { message: data.content, type: 'apiMessage', dateTime: new Date().toISOString() };
+            // Attach any pending action (CTA buttons) to this new message
+            if (pendingAction) {
+              newMsg.action = pendingAction;
+              pendingAction = null;
+            }
+            setMessages((prev) => [...prev, newMsg]);
             setLoading(false);
           } else {
             // Append to last bot message
             updateLastMessage(data.content);
+            // If there's a pending action, attach it now
+            if (pendingAction) {
+              updateLastMessageAction(pendingAction);
+              pendingAction = null;
+            }
           }
           if (props.agentType) touchSession(props.apiKey ?? '');
           scrollToBottom();
@@ -631,6 +645,12 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           scrollToBottom();
         } else if (data.status === 'idle') {
           setLoading(false);
+          // If idle and there's a pending action, attach to last message now
+          if (pendingAction) {
+            updateLastMessageAction(pendingAction);
+            pendingAction = null;
+            scrollToBottom();
+          }
         }
       } catch {
         // ignore
@@ -644,7 +664,13 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         // Normalize agent pipeline action format: extract elements from result or parameters
         const elements = data.result?.elements || data.parameters?.elements;
         const actionData = elements ? { elements } : data;
-        updateLastMessageAction(actionData);
+        // Buffer the action — it may arrive before the bot message it belongs to
+        if (elements) {
+          pendingAction = actionData;
+        } else {
+          // Non-CTA actions (approve/reject) attach immediately
+          updateLastMessageAction(actionData);
+        }
         scrollToBottom();
       } catch {
         // ignore parse errors
