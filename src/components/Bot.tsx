@@ -531,7 +531,14 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   const [isMessageStopping, setIsMessageStopping] = createSignal(false);
   const [starterPrompts, setStarterPrompts] = createSignal<string[]>([], { equals: false });
   const [chatFeedbackStatus, setChatFeedbackStatus] = createSignal<boolean>(false);
-  const [fullFileUpload, setFullFileUpload] = createSignal<boolean>(false);
+  // Default to TRUE: the LLabs backend does not implement the Flowise
+  // /api/v1/public-chatbotConfig endpoint, so the config fetch always
+  // returns 404 and uploadsConfig stays undefined. Defaulting fullFileUpload
+  // to true makes file/image upload work out of the box for all widget keys
+  // — the receiving agent decides what to do with attached files anyway.
+  // If the backend ever does return a config with fullFileUpload.status set,
+  // that value still takes precedence (set via setFullFileUpload below).
+  const [fullFileUpload, setFullFileUpload] = createSignal<boolean>(true);
   const [uploadsConfig, setUploadsConfig] = createSignal<UploadsConfig>();
   const [leadsConfig, setLeadsConfig] = createSignal<LeadsConfig>();
   const [isLeadSaved, setIsLeadSaved] = createSignal(false);
