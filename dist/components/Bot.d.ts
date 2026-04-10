@@ -47,6 +47,27 @@ export type IAction = {
         color?: string;
         url?: string;
         openInNewTab?: boolean;
+        company?: string;
+        what_we_heard?: string;
+        goal?: string;
+        agents?: Array<{
+            name: string;
+            description: string;
+        }>;
+        why_different?: string;
+        what_unlocks?: string;
+        connects_to?: string[];
+        investment?: {
+            range: string;
+            variance_reason?: string;
+            roi_ratio?: string;
+        };
+        booking?: {
+            host: string;
+            calendly_url: string;
+            duration_min?: number;
+            description?: string;
+        };
     }>;
     mapping?: {
         approve: string;
