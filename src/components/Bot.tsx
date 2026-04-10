@@ -2085,9 +2085,14 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   };
 
   const handleDrag = (e: DragEvent) => {
+    // ALWAYS preventDefault on drag events. This tells the browser "I own this
+    // drop zone" and blocks the default behavior of navigating to the dropped
+    // file URL. We still only show the visual "drop here" overlay when uploads
+    // are actually allowed — but we must eat the event either way so the
+    // browser doesn't navigate.
+    e.preventDefault();
+    e.stopPropagation();
     if (uploadsConfig()?.isImageUploadAllowed || isFileUploadAllowed()) {
-      e.preventDefault();
-      e.stopPropagation();
       if (e.type === 'dragenter' || e.type === 'dragover') {
         setIsDragActive(true);
       } else if (e.type === 'dragleave') {
@@ -2097,11 +2102,14 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   };
 
   const handleDrop = async (e: InputEvent | DragEvent) => {
+    // ALWAYS preventDefault FIRST so the browser never navigates to the file,
+    // even if this widget key has uploads disabled. Only after eating the
+    // event do we check whether we should actually attach the file.
+    e.preventDefault();
+    setIsDragActive(false);
     if (!uploadsConfig()?.isImageUploadAllowed && !isFileUploadAllowed()) {
       return;
     }
-    e.preventDefault();
-    setIsDragActive(false);
     const files = [];
     const uploadedFiles = [];
     if (e.dataTransfer && e.dataTransfer.files.length > 0) {
