@@ -98,7 +98,11 @@ export const TextInput = (props: TextInputProps) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    // IMAGE BRANCH: collect any image files and attach them if uploads allow it
+    // Clear any lingering warning from a previous paste attempt so the user
+    // doesn't see a stale error after a successful new paste.
+    if (warningMessage() !== '') setWarningMessage('');
+
+    // IMAGE BRANCH: collect any image files in the clipboard
     const imageFiles: File[] = [];
     for (const item of items) {
       if (item.kind === 'file' && item.type.startsWith('image/')) {
@@ -107,22 +111,27 @@ export const TextInput = (props: TextInputProps) => {
       }
     }
 
-    if (
-      imageFiles.length > 0 &&
-      (props.uploadsConfig?.isImageUploadAllowed || props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload)
-    ) {
-      e.preventDefault();
-      const dataTransfer = new DataTransfer();
-      const timestamp = Date.now();
-      imageFiles.forEach((file, index) => {
-        const ext = file.name.split('.').pop() || 'png';
-        const baseName = file.name.replace(/\.[^/.]+$/, '');
-        const uniqueName = `${baseName}_${timestamp}_${index}.${ext}`;
-        const renamedFile = new File([file], uniqueName, { type: file.type });
-        dataTransfer.items.add(renamedFile);
-      });
-      const syntheticEvent = { target: { files: dataTransfer.files } } as FileEvent<HTMLInputElement>;
-      props.handleFileChange(syntheticEvent);
+    // If the clipboard has an image, ALWAYS take the image path — either
+    // attach it (when uploads allow) or simply bail out without touching
+    // the text branch. Otherwise an image paste with its fallback alt-text
+    // could incorrectly trigger text-to-file conversion.
+    if (imageFiles.length > 0) {
+      if (props.uploadsConfig?.isImageUploadAllowed || props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload) {
+        e.preventDefault();
+        const dataTransfer = new DataTransfer();
+        const timestamp = Date.now();
+        imageFiles.forEach((file, index) => {
+          const ext = file.name.split('.').pop() || 'png';
+          const baseName = file.name.replace(/\.[^/.]+$/, '');
+          const uniqueName = `${baseName}_${timestamp}_${index}.${ext}`;
+          const renamedFile = new File([file], uniqueName, { type: file.type });
+          dataTransfer.items.add(renamedFile);
+        });
+        const syntheticEvent = { target: { files: dataTransfer.files } } as FileEvent<HTMLInputElement>;
+        props.handleFileChange(syntheticEvent);
+      }
+      // Image present but uploads disabled: let the browser handle the
+      // default paste (likely inserts nothing for images) and stop here.
       return;
     }
 
@@ -131,13 +140,16 @@ export const TextInput = (props: TextInputProps) => {
     // wouldn't be able to attach text files anyway, so fall through to normal paste.
     const pastedText = e.clipboardData?.getData('text/plain');
     if (pastedText && pastedText.length >= LARGE_PASTE_THRESHOLD && (props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload)) {
-      if (pastedText.length > MAX_PASTE_SIZE) {
+      // Build the Blob first so we can size-check in BYTES, not characters.
+      // Multi-byte UTF-8 (emoji, CJK) means .length in chars can understate
+      // the actual file size by 3-4x.
+      const blob = new Blob([pastedText], { type: 'text/plain' });
+      if (blob.size > MAX_PASTE_SIZE) {
         e.preventDefault();
-        setWarningMessage(`Pasted text is too large (${(pastedText.length / 1024 / 1024).toFixed(1)}MB). Save as a file and upload it instead.`);
+        setWarningMessage(`Pasted text is too large (${(blob.size / 1024 / 1024).toFixed(1)}MB). Save as a file and upload it instead.`);
         return;
       }
       e.preventDefault();
-      const blob = new Blob([pastedText], { type: 'text/plain' });
       const isoTimestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const file = new File([blob], `pasted-text-${isoTimestamp}.txt`, { type: 'text/plain' });
       const dataTransfer = new DataTransfer();
