@@ -2097,7 +2097,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   };
 
   const handleDrop = async (e: InputEvent | DragEvent) => {
-    if (!uploadsConfig()?.isImageUploadAllowed && !isFileUploadAllowed) {
+    if (!uploadsConfig()?.isImageUploadAllowed && !isFileUploadAllowed()) {
       return;
     }
     e.preventDefault();
@@ -2809,6 +2809,9 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           ref={botContainer}
           class={'relative flex w-full h-full text-base overflow-hidden bg-cover bg-center flex-col items-center chatbot-container ' + props.class}
           onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
         >
           {isDragActive() && (
             <div
