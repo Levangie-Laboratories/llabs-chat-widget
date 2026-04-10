@@ -618,7 +618,6 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               pendingAction = null;
             }
             setMessages((prev) => [...prev, newMsg]);
-            setLoading(false);
           } else {
             // Append to last bot message
             updateLastMessage(data.content);
@@ -628,6 +627,8 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
               pendingAction = null;
             }
           }
+          // Always clear loading on assistant message arrival (fixes stuck input)
+          setLoading(false);
           if (props.agentType) touchSession(props.apiKey ?? '');
           scrollToBottom();
         }
@@ -661,6 +662,13 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       if (llabsSessionId() !== mySessionId) return;
       try {
         const data = JSON.parse(ev.data);
+        // Skip internal lifecycle commands — they are not user-facing actions
+        // and would otherwise overwrite our buffered CTA actions
+        const command = data.command;
+        if (command === 'chat' || command === 'complete' || command === 'think' ||
+            command === 'feedback' || command === 'notify') {
+          return;
+        }
         // Normalize agent pipeline action format: extract elements from result or parameters
         const elements = data.result?.elements || data.parameters?.elements;
         const actionData = elements ? { elements } : data;
