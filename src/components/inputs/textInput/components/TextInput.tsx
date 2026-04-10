@@ -43,6 +43,10 @@ const defaultTextColor = '#303235';
 // CDN link for default send sound
 const defaultSendSound = 'https://cdn.jsdelivr.net/gh/FlowiseAI/FlowiseChatEmbed@latest/src/assets/send_message.mp3';
 
+// Large-paste → .txt auto-attachment thresholds (matches agent-ui MessageInput)
+const LARGE_PASTE_THRESHOLD = 2000; // chars — pastes larger than this auto-convert to .txt
+const MAX_PASTE_SIZE = 10 * 1024 * 1024; // 10MB hard ceiling
+
 export const TextInput = (props: TextInputProps) => {
   const [isSendButtonDisabled, setIsSendButtonDisabled] = createSignal(false);
   const [warningMessage, setWarningMessage] = createSignal('');
@@ -94,6 +98,7 @@ export const TextInput = (props: TextInputProps) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
+    // IMAGE BRANCH: collect any image files and attach them if uploads allow it
     const imageFiles: File[] = [];
     for (const item of items) {
       if (item.kind === 'file' && item.type.startsWith('image/')) {
@@ -118,7 +123,35 @@ export const TextInput = (props: TextInputProps) => {
       });
       const syntheticEvent = { target: { files: dataTransfer.files } } as FileEvent<HTMLInputElement>;
       props.handleFileChange(syntheticEvent);
+      return;
     }
+
+    // TEXT BRANCH: a large text paste auto-converts to a .txt file attachment.
+    // Gate on full-file / RAG upload being allowed — if neither is, the user
+    // wouldn't be able to attach text files anyway, so fall through to normal paste.
+    const pastedText = e.clipboardData?.getData('text/plain');
+    if (
+      pastedText &&
+      pastedText.length >= LARGE_PASTE_THRESHOLD &&
+      (props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload)
+    ) {
+      if (pastedText.length > MAX_PASTE_SIZE) {
+        e.preventDefault();
+        setWarningMessage(
+          `Pasted text is too large (${(pastedText.length / 1024 / 1024).toFixed(1)}MB). Save as a file and upload it instead.`,
+        );
+        return;
+      }
+      e.preventDefault();
+      const blob = new Blob([pastedText], { type: 'text/plain' });
+      const isoTimestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const file = new File([blob], `pasted-text-${isoTimestamp}.txt`, { type: 'text/plain' });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      const syntheticEvent = { target: { files: dataTransfer.files } } as FileEvent<HTMLInputElement>;
+      props.handleFileChange(syntheticEvent);
+    }
+    // Small text pastes fall through to the browser's default paste behavior.
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
