@@ -130,16 +130,10 @@ export const TextInput = (props: TextInputProps) => {
     // Gate on full-file / RAG upload being allowed — if neither is, the user
     // wouldn't be able to attach text files anyway, so fall through to normal paste.
     const pastedText = e.clipboardData?.getData('text/plain');
-    if (
-      pastedText &&
-      pastedText.length >= LARGE_PASTE_THRESHOLD &&
-      (props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload)
-    ) {
+    if (pastedText && pastedText.length >= LARGE_PASTE_THRESHOLD && (props.uploadsConfig?.isRAGFileUploadAllowed || props.isFullFileUpload)) {
       if (pastedText.length > MAX_PASTE_SIZE) {
         e.preventDefault();
-        setWarningMessage(
-          `Pasted text is too large (${(pastedText.length / 1024 / 1024).toFixed(1)}MB). Save as a file and upload it instead.`,
-        );
+        setWarningMessage(`Pasted text is too large (${(pastedText.length / 1024 / 1024).toFixed(1)}MB). Save as a file and upload it instead.`);
         return;
       }
       e.preventDefault();
