@@ -20,6 +20,8 @@ export type PresentationBooking = {
 
 export type PresentationData = {
   company: string;
+  visitor_name?: string;
+  prepared_date?: string;
   what_we_heard: string;
   goal: string;
   agents: PresentationAgent[];
@@ -38,6 +40,35 @@ type Props = {
 
 const ACCENT = '#7b61ff';
 const DIVIDER = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+
+/**
+ * Escape regex metacharacters in a string so it can be used safely inside `new RegExp(...)`.
+ */
+const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Split `text` around case-insensitive occurrences of `company` and return an array of
+ * text and <strong> JSX nodes so the first mention in each section appears bold.
+ * Only the FIRST occurrence is bolded — matches Aaron's spec ("bold company name on
+ * first use in each section").
+ */
+const HighlightCompany = (props: { text: string; company: string }) => {
+  const company = props.company?.trim();
+  if (!company) return <>{props.text}</>;
+  const re = new RegExp(escapeRegex(company), 'i');
+  const match = props.text.match(re);
+  if (!match || match.index === undefined) return <>{props.text}</>;
+  const before = props.text.slice(0, match.index);
+  const hit = props.text.slice(match.index, match.index + match[0].length);
+  const after = props.text.slice(match.index + match[0].length);
+  return (
+    <>
+      {before}
+      <strong style={{ 'font-weight': '700' }}>{hit}</strong>
+      {after}
+    </>
+  );
+};
 
 const Section = (props: { emoji: string; title: string; textColor: string; children: any }) => (
   <div style={{ 'margin-bottom': '16px' }}>
@@ -96,7 +127,7 @@ export const PresentationCard = (props: Props) => {
       {/* Top divider band */}
       <div
         style={{
-          padding: '10px 16px 6px 16px',
+          padding: '10px 16px 8px 16px',
           'border-bottom': `1px solid ${ACCENT}22`,
           background: `${ACCENT}08`,
         }}
@@ -114,30 +145,36 @@ export const PresentationCard = (props: Props) => {
         </div>
         <div
           style={{
-            'font-size': '1.05rem',
+            'font-size': '0.95rem',
             'font-weight': '700',
             color: textColor(),
-            'margin-top': '4px',
+            'margin-top': '6px',
+            'letter-spacing': '0.02em',
           }}
         >
-          {props.data.company}
+          LEVANGIE LABS — PREPARED FOR{' '}
+          <Show when={props.data.visitor_name} fallback={<>{props.data.company.toUpperCase()}</>}>
+            {props.data.visitor_name!.toUpperCase()} AT {props.data.company.toUpperCase()}
+          </Show>
         </div>
-        <div
-          style={{
-            'font-size': '0.75rem',
-            color: textColor(),
-            opacity: '0.6',
-            'margin-top': '2px',
-          }}
-        >
-          What we'd build for you
-        </div>
+        <Show when={props.data.prepared_date}>
+          <div
+            style={{
+              'font-size': '0.75rem',
+              color: textColor(),
+              opacity: '0.55',
+              'margin-top': '2px',
+            }}
+          >
+            {props.data.prepared_date}
+          </div>
+        </Show>
       </div>
 
       {/* Body */}
       <div style={{ padding: '16px' }}>
         <Section emoji="📍" title="What We Heard" textColor={textColor()}>
-          {props.data.what_we_heard}
+          <HighlightCompany text={props.data.what_we_heard} company={props.data.company} />
         </Section>
 
         <Section emoji="🎯" title="Your 12-Month Goal" textColor={textColor()}>
@@ -154,7 +191,7 @@ export const PresentationCard = (props: Props) => {
           </div>
         </Section>
 
-        <Section emoji="🤖" title="What We'd Build" textColor={textColor()}>
+        <Section emoji="🤖" title={`What We'd Build For ${props.data.company}`} textColor={textColor()}>
           <div style={{ display: 'flex', 'flex-direction': 'column', gap: '10px' }}>
             <For each={props.data.agents}>
               {(agent) => (
@@ -184,11 +221,11 @@ export const PresentationCard = (props: Props) => {
         </Section>
 
         <Section emoji="⚙️" title="Why This Is Different" textColor={textColor()}>
-          {props.data.why_different}
+          <HighlightCompany text={props.data.why_different} company={props.data.company} />
         </Section>
 
-        <Section emoji="📈" title="What This Unlocks" textColor={textColor()}>
-          {props.data.what_unlocks}
+        <Section emoji="📈" title={`What This Unlocks For ${props.data.company}`} textColor={textColor()}>
+          <HighlightCompany text={props.data.what_unlocks} company={props.data.company} />
         </Section>
 
         <Section emoji="🔗" title="What It Connects To" textColor={textColor()}>

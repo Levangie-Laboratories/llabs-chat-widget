@@ -493,6 +493,8 @@ export const BotBubble = (props: Props) => {
                     data={
                       {
                         company: action.company || '',
+                        visitor_name: action.visitor_name,
+                        prepared_date: action.prepared_date,
                         what_we_heard: action.what_we_heard || '',
                         goal: action.goal || '',
                         agents: action.agents || [],
