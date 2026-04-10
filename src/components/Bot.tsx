@@ -117,6 +117,8 @@ export type IAction = {
     openInNewTab?: boolean;
     // Presentation card fields (type === 'presentation-card')
     company?: string;
+    visitor_name?: string;
+    prepared_date?: string;
     what_we_heard?: string;
     goal?: string;
     agents?: Array<{ name: string; description: string }>;

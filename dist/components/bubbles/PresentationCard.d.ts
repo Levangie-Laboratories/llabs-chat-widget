@@ -15,6 +15,8 @@ export type PresentationBooking = {
 };
 export type PresentationData = {
     company: string;
+    visitor_name?: string;
+    prepared_date?: string;
     what_we_heard: string;
     goal: string;
     agents: PresentationAgent[];

@@ -48,6 +48,8 @@ export type IAction = {
         url?: string;
         openInNewTab?: boolean;
         company?: string;
+        visitor_name?: string;
+        prepared_date?: string;
         what_we_heard?: string;
         goal?: string;
         agents?: Array<{
