@@ -39,12 +39,7 @@ type Props = {
 const ACCENT = '#7b61ff';
 const DIVIDER = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
-const Section = (props: {
-  emoji: string;
-  title: string;
-  textColor: string;
-  children: any;
-}) => (
+const Section = (props: { emoji: string; title: string; textColor: string; children: any }) => (
   <div style={{ 'margin-bottom': '16px' }}>
     <div
       style={{

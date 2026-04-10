@@ -490,17 +490,19 @@ export const BotBubble = (props: Props) => {
               <For each={(props.message.action.elements || []).filter((e) => e.type === 'presentation-card')}>
                 {(action) => (
                   <PresentationCard
-                    data={{
-                      company: action.company || '',
-                      what_we_heard: action.what_we_heard || '',
-                      goal: action.goal || '',
-                      agents: action.agents || [],
-                      why_different: action.why_different || '',
-                      what_unlocks: action.what_unlocks || '',
-                      connects_to: action.connects_to || [],
-                      investment: action.investment || { range: '' },
-                      booking: action.booking,
-                    } as PresentationData}
+                    data={
+                      {
+                        company: action.company || '',
+                        what_we_heard: action.what_we_heard || '',
+                        goal: action.goal || '',
+                        agents: action.agents || [],
+                        why_different: action.why_different || '',
+                        what_unlocks: action.what_unlocks || '',
+                        connects_to: action.connects_to || [],
+                        investment: action.investment || { range: '' },
+                        booking: action.booking,
+                      } as PresentationData
+                    }
                     backgroundColor={props.backgroundColor}
                     textColor={props.textColor}
                   />
