@@ -531,14 +531,18 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
   const [isMessageStopping, setIsMessageStopping] = createSignal(false);
   const [starterPrompts, setStarterPrompts] = createSignal<string[]>([], { equals: false });
   const [chatFeedbackStatus, setChatFeedbackStatus] = createSignal<boolean>(false);
-  // Default to TRUE: the LLabs backend does not implement the Flowise
-  // /api/v1/public-chatbotConfig endpoint, so the config fetch always
-  // returns 404 and uploadsConfig stays undefined. Defaulting fullFileUpload
-  // to true makes file/image upload work out of the box for all widget keys
-  // — the receiving agent decides what to do with attached files anyway.
-  // If the backend ever does return a config with fullFileUpload.status set,
-  // that value still takes precedence (set via setFullFileUpload below).
-  const [fullFileUpload, setFullFileUpload] = createSignal<boolean>(true);
+  // Default to FALSE: uploads are fully disabled on the widget until the
+  // LLabs upload pipeline is wired up. The widget historically called
+  // Flowise endpoints (/api/v1/attachments, /api/v1/vector/upsert, and the
+  // /api/v1/public-chatbotConfig config fetch) — none of which exist on the
+  // LLabs backend. Until those are either ported or the widget is updated
+  // to call /api/uploads/file, attempting any upload results in a
+  // "Unable to upload documents" error at send time.
+  //
+  // Keeping this false hides the paper clip and image upload buttons, and
+  // causes the drag-drop + clipboard paste handlers to no-op (they still
+  // call preventDefault so the browser doesn't navigate to dropped files).
+  const [fullFileUpload, setFullFileUpload] = createSignal<boolean>(false);
   const [uploadsConfig, setUploadsConfig] = createSignal<UploadsConfig>();
   const [leadsConfig, setLeadsConfig] = createSignal<LeadsConfig>();
   const [isLeadSaved, setIsLeadSaved] = createSignal(false);
