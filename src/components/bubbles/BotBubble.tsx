@@ -13,6 +13,7 @@ import { SourceBubble } from '../bubbles/SourceBubble';
 import { DateTimeToggleTheme } from '@/features/bubble/types';
 import { WorkflowTreeView } from '../treeview/WorkflowTreeView';
 import { ThinkingCard } from './ThinkingBubble';
+import { PresentationCard, PresentationData } from './PresentationCard';
 
 type Props = {
   message: MessageType;
@@ -484,9 +485,32 @@ export const BotBubble = (props: Props) => {
               }}
             />
           )}
-          {props.message.action && (
-            <div class="px-4 py-2 flex flex-row justify-start space-x-2">
-              <For each={props.message.action.elements || []}>
+          {props.message.action && (props.message.action.elements || []).some((e) => e.type === 'presentation-card') && (
+            <div class="px-4 py-2">
+              <For each={(props.message.action.elements || []).filter((e) => e.type === 'presentation-card')}>
+                {(action) => (
+                  <PresentationCard
+                    data={{
+                      company: action.company || '',
+                      what_we_heard: action.what_we_heard || '',
+                      goal: action.goal || '',
+                      agents: action.agents || [],
+                      why_different: action.why_different || '',
+                      what_unlocks: action.what_unlocks || '',
+                      connects_to: action.connects_to || [],
+                      investment: action.investment || { range: '' },
+                      booking: action.booking,
+                    } as PresentationData}
+                    backgroundColor={props.backgroundColor}
+                    textColor={props.textColor}
+                  />
+                )}
+              </For>
+            </div>
+          )}
+          {props.message.action && (props.message.action.elements || []).some((e) => e.type !== 'presentation-card') && (
+            <div class="px-4 py-2 flex flex-row justify-start space-x-2 flex-wrap gap-2">
+              <For each={(props.message.action.elements || []).filter((e) => e.type !== 'presentation-card')}>
                 {(action) => {
                   return (
                     <>

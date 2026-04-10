@@ -115,6 +115,16 @@ export type IAction = {
     color?: string;
     url?: string;
     openInNewTab?: boolean;
+    // Presentation card fields (type === 'presentation-card')
+    company?: string;
+    what_we_heard?: string;
+    goal?: string;
+    agents?: Array<{ name: string; description: string }>;
+    why_different?: string;
+    what_unlocks?: string;
+    connects_to?: string[];
+    investment?: { range: string; variance_reason?: string; roi_ratio?: string };
+    booking?: { host: string; calendly_url: string; duration_min?: number; description?: string };
   }>;
   mapping?: {
     approve: string;
@@ -665,8 +675,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         // Skip internal lifecycle commands — they are not user-facing actions
         // and would otherwise overwrite our buffered CTA actions
         const command = data.command;
-        if (command === 'chat' || command === 'complete' || command === 'think' ||
-            command === 'feedback' || command === 'notify') {
+        if (command === 'chat' || command === 'complete' || command === 'think' || command === 'feedback' || command === 'notify') {
           return;
         }
         // Normalize agent pipeline action format: extract elements from result or parameters
