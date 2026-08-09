@@ -626,11 +626,8 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     // Buffer for pending CTA actions that arrive before their associated message
     let pendingAction: any = null;
 
-    es.addEventListener('message', (ev: MessageEvent) => {
-      // Only process events for our session
-      if (llabsSessionId() !== mySessionId) return;
+    const handleMessageData = (data: any) => {
       try {
-        const data = JSON.parse(ev.data);
         if (data.role === 'assistant' && data.content) {
           // If loading (waiting for first token), add a new bot message
           if (loading()) {
@@ -656,14 +653,12 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
           scrollToBottom();
         }
       } catch {
-        // ignore parse errors
+        // ignore malformed payloads
       }
-    });
+    };
 
-    es.addEventListener('status', (ev: MessageEvent) => {
-      if (llabsSessionId() !== mySessionId) return;
+    const handleStatusData = (data: any) => {
       try {
-        const data = JSON.parse(ev.data);
         if (data.status === 'thinking') {
           setLoading(true);
           scrollToBottom();
@@ -679,12 +674,10 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
       } catch {
         // ignore
       }
-    });
+    };
 
-    es.addEventListener('action', (ev: MessageEvent) => {
-      if (llabsSessionId() !== mySessionId) return;
+    const handleActionData = (data: any) => {
       try {
-        const data = JSON.parse(ev.data);
         // Skip internal lifecycle commands — they are not user-facing actions
         // and would otherwise overwrite our buffered CTA actions
         const command = data.command;
@@ -703,16 +696,43 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         }
         scrollToBottom();
       } catch {
-        // ignore parse errors
+        // ignore malformed payloads
       }
-    });
-
-    es.addEventListener('heartbeat', () => {
-      // keep-alive, nothing to do
-    });
+    };
 
     let sseErrorCount = 0;
     const SSE_MAX_ERRORS = 5;
+
+    // §16 stream-frame protocol (llabs.stream-frame.v1): every semantic
+    // event now rides inside a `frame` envelope as payload.kind /
+    // payload.data — payloads byte-identical to the legacy events this
+    // widget consumed as native SSE names. Committed control frames
+    // (status/terminal/generation_boundary/snapshot) carry no
+    // payload.kind; the widget does not track durable cursors — a fresh
+    // attach replays the current generation from its boundary.
+    es.addEventListener('frame', (ev: MessageEvent) => {
+      if (llabsSessionId() !== mySessionId) return;
+      sseErrorCount = 0;
+      let frame: any;
+      try {
+        frame = JSON.parse(ev.data);
+      } catch {
+        return;
+      }
+      const kind = frame?.payload?.kind;
+      const data = frame?.payload?.data;
+      if (typeof kind !== 'string' || data === undefined) return;
+      if (kind === 'message') handleMessageData(data);
+      else if (kind === 'status') handleStatusData(data);
+      else if (kind === 'action' || kind === 'subagent_action') handleActionData(data);
+      // 'heartbeat' and every other kind: keep-alive only for the widget
+    });
+
+    es.addEventListener('attach', () => {
+      // Typed reconnect result (llabs.stream-attach.v1). The widget opens
+      // without cursors, so the server always replays the current
+      // generation from its boundary — nothing to reconcile here.
+    });
 
     es.onerror = () => {
       sseErrorCount++;
@@ -734,11 +754,6 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
         scrollToBottom();
       }
     };
-
-    // Reset error count on successful message
-    es.addEventListener('message', () => {
-      sseErrorCount = 0;
-    });
 
     llabsEventSource = es;
   };
