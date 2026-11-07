@@ -312,8 +312,13 @@ export const PresentationCard = (props: Props) => {
             Next step: a{' '}
             <strong>
               {props.data.booking?.duration_min || 15}-minute {props.data.booking?.description || 'demo account setup call'}
-            </strong>{' '}
-            with <strong>{props.data.booking?.host || 'Edward West'}</strong>.
+            </strong>
+            {/* No built-in host: the server sends the person, so no name ships in this bundle. */}
+            <Show when={props.data.booking?.host}>
+              {' '}
+              with <strong>{props.data.booking?.host}</strong>
+            </Show>
+            .
           </div>
           <button
             type="button"
@@ -339,7 +344,7 @@ export const PresentationCard = (props: Props) => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            Book with {props.data.booking?.host || 'Edward West'} ({props.data.booking?.duration_min || 15} min)
+            {props.data.booking?.host ? `Book with ${props.data.booking.host}` : 'Book a call'} ({props.data.booking?.duration_min || 15} min)
           </button>
         </div>
       </Show>
